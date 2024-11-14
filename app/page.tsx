@@ -86,7 +86,7 @@ export default function EventRegistration() {
 
         // Load template
         const templateImg = new window.Image();
-        templateImg.src = "/images/template.jpg";
+        templateImg.src = "/images/template2.jpg";
 
         templateImg.onload = () => {
             canvas.width = 900;
@@ -127,6 +127,38 @@ export default function EventRegistration() {
                     ctx.drawImage(userImg, x, y, scaledWidth * imagePosition.scale, scaledHeight * imagePosition.scale);
                     ctx.restore();
 
+                    // Add name text
+                    if (formData.name) {
+                        ctx.save();
+
+                        // Get first name
+                        const firstName = formData.name.split(" ")[0].toUpperCase();
+
+                        // Set maximum width for text
+                        const maxWidth = 164;
+
+                        // Start with a base font size
+                        let fontSize = 42;
+
+                        // Configure text properties
+                        ctx.textAlign = "left";
+                        ctx.fillStyle = "#FFFFFF";
+
+                        // Adjust font size based on text width
+                        do {
+                            ctx.font = `${fontSize}px Poppins`;
+                            fontSize--;
+                        } while (ctx.measureText(firstName).width > maxWidth && fontSize > 12);
+
+                        // Position text (125 from left, 162 from bottom)
+                        const textX = 135;
+                        const textY = canvas.height - 162;
+
+                        // Draw the text
+                        ctx.fillText(firstName, textX, textY);
+                        ctx.restore();
+                    }
+
                     if (isDevelopment) {
                         ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
                         ctx.lineWidth = 2;
@@ -137,7 +169,7 @@ export default function EventRegistration() {
                 };
             }
         };
-    }, [formData.photo, imagePosition, isDevelopment]);
+    }, [formData.photo, formData.name, imagePosition, isDevelopment]);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
