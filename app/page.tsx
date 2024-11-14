@@ -135,27 +135,42 @@ export default function EventRegistration() {
                         const firstName = formData.name.split(" ")[0].toUpperCase();
 
                         // Set maximum width for text
-                        const maxWidth = 164;
+                        const maxWidth = 134; // Reduced from 154 to add padding
+                        const horizontalPadding = 10; // 10px padding on each side
 
                         // Start with a base font size
-                        let fontSize = 42;
+                        let fontSize = 64;
+                        const defaultY = canvas.height - 164;
 
                         // Configure text properties
-                        ctx.textAlign = "left";
+                        ctx.textAlign = "center";
                         ctx.fillStyle = "#FFFFFF";
 
                         // Adjust font size based on text width
                         do {
                             ctx.font = `${fontSize}px Poppins`;
                             fontSize--;
-                        } while (ctx.measureText(firstName).width > maxWidth && fontSize > 12);
+                        } while (ctx.measureText(firstName).width > maxWidth && fontSize > 18);
 
-                        // Position text (125 from left, 162 from bottom)
-                        const textX = 135;
-                        const textY = canvas.height - 162;
+                        // Calculate text metrics for vertical centering
+                        const metrics = ctx.measureText(firstName);
+                        const textHeight = fontSize * 1.2; // Approximate height based on font size
+
+                        // Position text with consistent spacing
+                        const textX = 125 + horizontalPadding + maxWidth / 2;
+                        // Adjust Y position dynamically based on text height
+                        const heightAdjustment = Math.max(0, (64 - fontSize) * 0.85);
+                        const textY = defaultY - (textHeight - fontSize) / 2;
 
                         // Draw the text
-                        ctx.fillText(firstName, textX, textY);
+                        for (let i = 0; i < 3; i++) {
+                            ctx.strokeText(firstName, textX, textY);
+                        }
+
+                        // Draw the text multiple times for extra boldness
+                        for (let i = 0; i < 2; i++) {
+                            ctx.fillText(firstName, textX, textY);
+                        }
                         ctx.restore();
                     }
 
