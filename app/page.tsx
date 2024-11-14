@@ -306,6 +306,7 @@ export default function EventRegistration() {
                                                     onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                                                     required
                                                     className="h-12 text-lg font-inter"
+                                                    placeholder="Enter your email address"
                                                 />
                                             </motion.div>
 
@@ -325,6 +326,7 @@ export default function EventRegistration() {
                                                     onChange={(e) => setFormData((prev) => ({ ...prev, phoneNumber: e.target.value }))}
                                                     required
                                                     className="h-12 text-lg font-inter"
+                                                    placeholder="Enter your phone number"
                                                 />
                                             </motion.div>
                                         </div>
