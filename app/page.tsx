@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
-import { CldUploadWidget } from "next-cloudinary";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { Registration } from "@/lib/types";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
+import { SuccessModal } from "@/components/SuccessModal";
 
 interface RegistrationData {
     name: string;
@@ -24,7 +26,7 @@ interface ImagePosition {
     scale: number;
 }
 
-const EventRegistration = () => {
+export default function EventRegistration() {
     const isDevelopment = true;
 
     const [formData, setFormData] = useState<RegistrationData>({
@@ -35,11 +37,33 @@ const EventRegistration = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [isUploadLoading, setIsUploadLoading] = useState(false);
     const [imagePosition, setImagePosition] = useState<ImagePosition>({
-        x: 0, // Start centered
-        y: 0, // Start centered
-        scale: 1, // Start at 1x scale
+        x: 0,
+        y: 0,
+        scale: 1,
     });
+    const { uploadFile, isUploading } = useCloudinaryUpload();
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [socialCardUrl, setSocialCardUrl] = useState("");
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setIsUploadLoading(true);
+            const uploadedUrl = await uploadFile(file);
+            setFormData((prev) => ({ ...prev, photo: uploadedUrl }));
+            toast.success("Photo uploaded successfully!");
+        } catch (error) {
+            console.error("Upload error:", error);
+        } finally {
+            setIsUploadLoading(false);
+        }
+    };
 
     // Function to calculate dimensions maintaining aspect ratio
     const calculateDimensions = (originalWidth: number, originalHeight: number, maxWidth: number, maxHeight: number) => {
@@ -51,7 +75,9 @@ const EventRegistration = () => {
     };
 
     // Function to redraw canvas with current position settings
-    const updateCanvas = () => {
+    const updateCanvas = useCallback(() => {
+        if (typeof window === "undefined") return;
+
         const canvas = canvasRef.current;
         if (!canvas) return;
 
@@ -101,66 +127,122 @@ const EventRegistration = () => {
                     ctx.drawImage(userImg, x, y, scaledWidth * imagePosition.scale, scaledHeight * imagePosition.scale);
                     ctx.restore();
 
-                    // Development border
-                    ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.roundRect(sideSpacing, profileY, profileWidth, profileHeight, radius);
-                    ctx.stroke();
+                    if (isDevelopment) {
+                        ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.roundRect(sideSpacing, profileY, profileWidth, profileHeight, radius);
+                        ctx.stroke();
+                    }
                 };
             }
         };
-    };
+    }, [formData.photo, imagePosition, isDevelopment]);
 
-    const handleUploadSuccess = (result: any) => {
-        const baseUrl = result.info.secure_url.split("/upload/")[0] + "/upload/";
-        const transformations = "c_fill,g_face,w_398,h_488,q_100/"; // Match our canvas dimensions
-        const filename = result.info.secure_url.split("/upload/")[1];
-        const optimizedUrl = baseUrl + transformations + filename;
-
-        setFormData((prev) => ({ ...prev, photo: optimizedUrl }));
-    };
-
-    // Update canvas when position changes or photo changes
     useEffect(() => {
-        updateCanvas();
-    }, [imagePosition, formData.photo]);
+        if (typeof window !== "undefined") {
+            updateCanvas();
+        }
+    }, [updateCanvas]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        // For development, just show the final canvas state
-        const canvas = canvasRef.current;
-        if (canvas) {
-            const dataUrl = canvas.toDataURL("image/jpeg", 1.0); // Use maximum quality
-            const newWindow = window.open();
-            if (newWindow) {
-                newWindow.document.write(`<img src="${dataUrl}" alt="Final Image"/>`);
-            }
+    const uploadToCloudinary = async (dataUrl: string): Promise<string> => {
+        try {
+            // Convert base64 to blob
+            const response = await fetch(dataUrl);
+            const blob = await response.blob();
+            const file = new File([blob], "social-card.jpg", { type: "image/jpeg" });
+
+            return await uploadFile(file);
+        } catch (error) {
+            console.error("Error uploading to Cloudinary:", error);
+            throw error;
         }
     };
 
-    const MarqueeText = () => (
-        <div className="fixed top-0 w-full pointer-events-none overflow-hidden z-0 bg-white/80 backdrop-blur-sm py-3">
-            <div className="animate-marquee whitespace-nowrap">
-                {Array(10)
-                    .fill("THIS IS LAGOS")
-                    .map((text, i) => (
-                        <span key={i} className="mx-4 text-4xl font-dakdo font-bold text-[#ff0000] opacity-50">
-                            {text}
-                        </span>
-                    ))}
-            </div>
-        </div>
-    );
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            const canvas = canvasRef.current;
+            if (!canvas) {
+                throw new Error("Canvas not found");
+            }
+
+            // Make sure canvas is properly sized
+            if (canvas.width !== 900 || canvas.height !== 1062) {
+                canvas.width = 900;
+                canvas.height = 1062;
+                await updateCanvas(); // Wait for canvas to update
+            }
+
+            // Generate the social card
+            toast.info("Generating your social card...");
+            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
+
+            // Upload social card to Cloudinary
+            toast.info("Uploading social card...");
+            const socialCardUrl = await uploadToCloudinary(dataUrl);
+
+            // Prepare registration data
+            const registrationData: Omit<Registration, "_id" | "createdAt"> = {
+                name: formData.name,
+                email: formData.email,
+                phoneNumber: formData.phoneNumber,
+                profilePhoto: formData.photo,
+                socialCard: socialCardUrl,
+            };
+
+            // Submit registration to API
+            toast.info("Completing registration...");
+            const response = await fetch("/api/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(registrationData),
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+
+            // Show success modal with social card
+            setSocialCardUrl(socialCardUrl);
+            setShowSuccessModal(true);
+            toast.success("Registration completed successfully!");
+        } catch (error) {
+            console.error("Registration error:", error);
+            toast.error("Failed to complete registration. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const MarqueeText = useMemo(() => {
+        return function MarqueeTextComponent() {
+            return (
+                <div className="fixed top-0 w-full pointer-events-none overflow-hidden z-0 bg-white/80 backdrop-blur-sm py-3">
+                    <div className="animate-marquee whitespace-nowrap">
+                        {Array(10)
+                            .fill("THIS IS LAGOS")
+                            .map((text, i) => (
+                                <span key={i} className="mx-4 text-4xl font-dakdo font-bold text-[#ff0000] opacity-50">
+                                    {text}
+                                </span>
+                            ))}
+                    </div>
+                </div>
+            );
+        };
+    }, []);
 
     return (
-        <div className=" bg-white">
+        <div className="min-h-screen bg-white">
             <MarqueeText />
-            {/* Event Header Section */}
             <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
                 <div className="text-center space-y-6">
                     <div className="flex justify-center mb-8">
-                        <Image src="/images/logo.png" alt="Event Logo" width={180} height={180} className="h-auto" />
+                        <Image src="/images/logo.png" alt="Event Logo" width={180} height={180} priority className="h-auto" />
                     </div>
                     <h1 className="text-6xl font-dakdo font-bold text-[#ff0000] tracking-tight">THIS IS LAGOS</h1>
                     <div className="space-y-4">
@@ -247,6 +329,9 @@ const EventRegistration = () => {
                                             </motion.div>
                                         </div>
 
+                                        {/* Hidden file input */}
+                                        <Input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+
                                         {/* Right Column */}
                                         <div className="space-y-6">
                                             <motion.div
@@ -256,27 +341,40 @@ const EventRegistration = () => {
                                                 className="space-y-4"
                                             >
                                                 {!formData.photo ? (
-                                                    <CldUploadWidget
-                                                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!}
-                                                        onSuccess={handleUploadSuccess}
+                                                    <div
+                                                        className={`border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer 
+                                                        hover:border-gray-400 transition-colors relative
+                                                        ${isUploadLoading ? "bg-gray-50" : ""}`}
+                                                        onClick={() => fileInputRef.current?.click()}
                                                     >
-                                                        {({ open }) => (
-                                                            <div
-                                                                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-gray-400 transition-colors"
-                                                                onClick={() => open()}
-                                                            >
-                                                                <div className="space-y-4">
-                                                                    <div className="mx-auto h-16 w-16 text-gray-400">
-                                                                        {/* Add an upload icon here */}
-                                                                    </div>
-                                                                    <div className="space-y-2">
-                                                                        <p className="text-lg font-medium">Upload your photo</p>
-                                                                        <p className="text-sm text-gray-500">Click to browse</p>
-                                                                    </div>
-                                                                </div>
+                                                        <div className="space-y-4">
+                                                            <div className="mx-auto h-16 w-16 text-gray-400">
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    fill="none"
+                                                                    viewBox="0 0 24 24"
+                                                                    strokeWidth={1.5}
+                                                                    stroke="currentColor"
+                                                                    className="w-16 h-16"
+                                                                >
+                                                                    <path
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                                                                    />
+                                                                </svg>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <p className="text-lg font-medium">Upload your photo</p>
+                                                                <p className="text-sm text-gray-500">Click to browse</p>
+                                                            </div>
+                                                        </div>
+                                                        {isUploadLoading && (
+                                                            <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                                                             </div>
                                                         )}
-                                                    </CldUploadWidget>
+                                                    </div>
                                                 ) : (
                                                     <div className={"space-y-4"}>
                                                         <div className="relative w-full aspect-[398/488] rounded-lg overflow-hidden shadow-lg">
@@ -378,6 +476,10 @@ const EventRegistration = () => {
                                         </Button>
                                     </motion.div>
                                 </form>
+                                {/* Hidden canvas for generating social card */}
+                                <canvas ref={canvasRef} className="hidden" />
+                                {/* Add Success Modal */}
+                                <SuccessModal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} socialCardUrl={socialCardUrl} />
                             </CardContent>
                         </Card>
                     </motion.div>
@@ -385,6 +487,4 @@ const EventRegistration = () => {
             </div>
         </div>
     );
-};
-
-export default EventRegistration;
+}
