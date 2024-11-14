@@ -14,10 +14,10 @@ export async function POST(request: Request) {
 
         const result = await cloudinary.uploader.upload(image, {
             folder: 'event-social-cards',
-            transformation: [
-                { quality: 'auto:best' },
-                { fetch_format: 'auto' }
-            ]
+            // transformation: [
+            //     { quality: 'auto:best' },
+            //     { fetch_format: 'auto' }
+            // ]
         });
 
         return NextResponse.json({ url: result.secure_url });
