@@ -28,26 +28,75 @@ interface ImagePosition {
 
 export default function EventRegistration() {
     const isDevelopment = true;
-
-    const [formData, setFormData] = useState<RegistrationData>({
+    const initialFormData = {
         name: "",
         email: "",
         phoneNumber: "",
         photo: "",
-    });
-    const [isLoading, setIsLoading] = useState(false);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [isUploadLoading, setIsUploadLoading] = useState(false);
-    const [imagePosition, setImagePosition] = useState<ImagePosition>({
+    };
+
+    const initialImagePosition = {
         x: 0,
         y: 0,
         scale: 1,
-    });
+    };
+
+    const [formData, setFormData] = useState<RegistrationData>(initialFormData);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isUploadLoading, setIsUploadLoading] = useState(false);
+    const [imagePosition, setImagePosition] = useState<ImagePosition>(initialImagePosition);
     const { uploadFile, isUploading } = useCloudinaryUpload();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [socialCardUrl, setSocialCardUrl] = useState("");
 
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Cleanup function
+    const resetForm = useCallback(() => {
+        setFormData(initialFormData);
+        setImagePosition(initialImagePosition);
+        setSocialCardUrl("");
+        setIsLoading(false);
+        setIsUploadLoading(false);
+
+        // Clear file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+
+        // Clear canvas
+        const canvas = canvasRef.current;
+        if (canvas) {
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+    }, []);
+
+    // Handle modal close with cleanup
+    const handleModalClose = useCallback(() => {
+        setShowSuccessModal(false);
+        resetForm();
+    }, [resetForm]);
+
+    useEffect(() => {
+        return () => {
+            // Cleanup any resources
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
+            const canvas = canvasRef.current;
+            if (canvas) {
+                const ctx = canvas.getContext("2d");
+                if (ctx) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+        };
+    }, []);
+
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -60,6 +109,7 @@ export default function EventRegistration() {
             toast.success("Photo uploaded successfully!");
         } catch (error) {
             console.error("Upload error:", error);
+            toast.error("Failed to upload photo. Please try again.");
         } finally {
             setIsUploadLoading(false);
         }
@@ -74,7 +124,18 @@ export default function EventRegistration() {
         };
     };
 
-    // Function to redraw canvas with current position settings
+    // Responsive canvas dimensions
+    const getCanvasDimensions = useCallback(() => {
+        const isMobile = window.innerWidth < 768;
+        return {
+            width: isMobile ? 450 : 900,
+            height: isMobile ? 531 : 1062,
+            profileWidth: isMobile ? 199 : 398,
+            profileHeight: isMobile ? 244 : 488,
+            sideSpacing: isMobile ? 125.5 : 251,
+        };
+    }, []);
+
     const updateCanvas = useCallback(() => {
         if (typeof window === "undefined") return;
 
@@ -84,14 +145,15 @@ export default function EventRegistration() {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        // Load template
+        const dims = getCanvasDimensions();
+        canvas.width = dims.width;
+        canvas.height = dims.height;
+
         const templateImg = new window.Image();
         templateImg.src = "/images/template2.jpg";
 
         templateImg.onload = () => {
-            canvas.width = 900;
-            canvas.height = 1062;
-            ctx.drawImage(templateImg, 0, 0);
+            ctx.drawImage(templateImg, 0, 0, dims.width, dims.height);
 
             if (formData.photo) {
                 const userImg = new window.Image();
@@ -99,96 +161,72 @@ export default function EventRegistration() {
                 userImg.src = formData.photo;
 
                 userImg.onload = () => {
-                    const profileWidth = 398;
-                    const profileHeight = 488;
-                    const sideSpacing = 251;
-                    const profileY = Math.round((1062 - profileHeight) / 2) + 38;
+                    const profileY = Math.round((dims.height - dims.profileHeight) / 2) + dims.height * 0.036;
 
-                    // Draw user photo
                     ctx.save();
                     ctx.beginPath();
-                    const radius = 20;
-                    ctx.roundRect(sideSpacing, profileY, profileWidth, profileHeight, radius);
+                    const radius = dims.width * 0.022;
+                    ctx.roundRect(dims.sideSpacing, profileY, dims.profileWidth, dims.profileHeight, radius);
                     ctx.clip();
 
-                    // Get dimensions that fill the entire space while maintaining aspect ratio
                     const { width: scaledWidth, height: scaledHeight } = calculateDimensions(
                         userImg.width,
                         userImg.height,
-                        profileWidth,
-                        profileHeight
+                        dims.profileWidth,
+                        dims.profileHeight
                     );
 
-                    // Calculate positioning to center the image
-                    const x = sideSpacing + (profileWidth - scaledWidth) / 2 + imagePosition.x;
-                    const y = profileY + (profileHeight - scaledHeight) / 2 + imagePosition.y;
+                    const x = dims.sideSpacing + (dims.profileWidth - scaledWidth) / 2 + imagePosition.x * (dims.width / 900);
+                    const y = profileY + (dims.profileHeight - scaledHeight) / 2 + imagePosition.y * (dims.height / 1062);
 
-                    // Draw the image with the calculated dimensions
                     ctx.drawImage(userImg, x, y, scaledWidth * imagePosition.scale, scaledHeight * imagePosition.scale);
                     ctx.restore();
 
-                    // Add name text
+                    // Add responsive name text
                     if (formData.name) {
                         ctx.save();
-
-                        // Get first name
                         const firstName = formData.name.split(" ")[0].toUpperCase();
+                        const maxWidth = dims.width * 0.149;
+                        const horizontalPadding = dims.width * 0.011;
+                        let fontSize = dims.width * 0.071;
+                        const defaultY = dims.height - dims.height * 0.154;
 
-                        // Set maximum width for text
-                        const maxWidth = 134; // Reduced from 154 to add padding
-                        const horizontalPadding = 10; // 10px padding on each side
-
-                        // Start with a base font size
-                        let fontSize = 64;
-                        const defaultY = canvas.height - 164;
-
-                        // Configure text properties
                         ctx.textAlign = "center";
                         ctx.fillStyle = "#FFFFFF";
 
-                        // Adjust font size based on text width
                         do {
                             ctx.font = `${fontSize}px Poppins`;
                             fontSize--;
-                        } while (ctx.measureText(firstName).width > maxWidth && fontSize > 18);
+                        } while (ctx.measureText(firstName).width > maxWidth && fontSize > dims.width * 0.02);
 
-                        // Calculate text metrics for vertical centering
-                        const metrics = ctx.measureText(firstName);
-                        const textHeight = fontSize * 1.2; // Approximate height based on font size
-
-                        // Position text with consistent spacing
-                        const textX = 125 + horizontalPadding + maxWidth / 2;
-                        // Adjust Y position dynamically based on text height
-                        const heightAdjustment = Math.max(0, (64 - fontSize) * 0.85);
+                        const textHeight = fontSize * 1.2;
+                        const textX = dims.width * 0.139 + horizontalPadding + maxWidth / 2;
+                        const heightAdjustment = Math.max(0, (dims.width * 0.071 - fontSize) * 0.85);
                         const textY = defaultY - (textHeight - fontSize) / 2;
 
-                        // Draw the text
                         for (let i = 0; i < 3; i++) {
                             ctx.strokeText(firstName, textX, textY);
                         }
-
-                        // Draw the text multiple times for extra boldness
                         for (let i = 0; i < 2; i++) {
                             ctx.fillText(firstName, textX, textY);
                         }
                         ctx.restore();
                     }
-
-                    if (isDevelopment) {
-                        ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
-                        ctx.lineWidth = 2;
-                        ctx.beginPath();
-                        ctx.roundRect(sideSpacing, profileY, profileWidth, profileHeight, radius);
-                        ctx.stroke();
-                    }
                 };
             }
         };
-    }, [formData.photo, formData.name, imagePosition, isDevelopment]);
+    }, [formData.photo, formData.name, imagePosition, getCanvasDimensions]);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
             updateCanvas();
+
+            const handleResize = () => {
+                updateCanvas();
+            };
+
+            window.addEventListener("resize", handleResize);
+            return () => window.removeEventListener("resize", handleResize);
         }
     }, [updateCanvas]);
 
@@ -206,64 +244,58 @@ export default function EventRegistration() {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
+const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-        try {
-            const canvas = canvasRef.current;
-            if (!canvas) {
-                throw new Error("Canvas not found");
-            }
-
-            // Make sure canvas is properly sized
-            if (canvas.width !== 900 || canvas.height !== 1062) {
-                canvas.width = 900;
-                canvas.height = 1062;
-                await updateCanvas(); // Wait for canvas to update
-            }
-
-            // Generate the social card
-            toast.info("Generating your social card...");
-            const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
-
-            // Upload social card to Cloudinary
-            toast.info("Uploading social card...");
-            const socialCardUrl = await uploadToCloudinary(dataUrl);
-
-            // Prepare registration data
-            const registrationData: Omit<Registration, "_id" | "createdAt"> = {
-                name: formData.name,
-                email: formData.email,
-                phoneNumber: formData.phoneNumber,
-                profilePhoto: formData.photo,
-                socialCard: socialCardUrl,
-            };
-
-            // Submit registration to API
-            toast.info("Completing registration...");
-            const response = await fetch("/api/register", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(registrationData),
-            });
-
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message);
-
-            // Show success modal with social card
-            setSocialCardUrl(socialCardUrl);
-            setShowSuccessModal(true);
-            toast.success("Registration completed successfully!");
-        } catch (error) {
-            console.error("Registration error:", error);
-            toast.error("Failed to complete registration. Please try again.");
-        } finally {
-            setIsLoading(false);
+    try {
+        const canvas = canvasRef.current;
+        if (!canvas) {
+            throw new Error("Canvas not found");
         }
-    };
+
+        // Generate the social card
+        toast.info("Generating your social card...");
+        const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
+
+        // Upload social card to Cloudinary
+        toast.info("Uploading social card...");
+        const socialCardUrl = await uploadToCloudinary(dataUrl);
+
+        // Prepare registration data
+        const registrationData: Omit<Registration, "_id" | "createdAt"> = {
+            name: formData.name,
+            email: formData.email,
+            phoneNumber: formData.phoneNumber,
+            profilePhoto: formData.photo,
+            socialCard: socialCardUrl,
+        };
+
+        // Submit registration to API
+        toast.info("Completing registration...");
+        const response = await fetch("/api/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(registrationData),
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message);
+
+        // Store the social card URL and show success modal
+        setSocialCardUrl(socialCardUrl);
+        setShowSuccessModal(true);
+        toast.success("Registration completed successfully!");
+    } catch (error) {
+        console.error("Registration error:", error);
+        toast.error("Failed to complete registration. Please try again.");
+        resetForm(); // Reset form on error
+    } finally {
+        setIsLoading(false);
+    }
+};
 
     const MarqueeText = useMemo(() => {
         return function MarqueeTextComponent() {
@@ -284,30 +316,30 @@ export default function EventRegistration() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white overflow-x-hidden">
             <MarqueeText />
-            <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                <div className="text-center space-y-6">
-                    <div className="flex justify-center mb-8">
-                        <Image src="/images/logo.png" alt="Event Logo" width={180} height={180} priority className="h-auto" />
+            <div className="pt-16 md:pt-20 pb-8 md:pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                <div className="text-center space-y-4 md:space-y-6">
+                    <div className="flex justify-center mb-6 md:mb-8">
+                        <Image src="/images/logo.png" alt="Event Logo" width={120} height={120} className="h-auto md:w-[180px]" priority />
                     </div>
-                    <h1 className="text-6xl font-dakdo font-bold text-[#ff0000] tracking-tight">THIS IS LAGOS</h1>
-                    <div className="space-y-4">
-                        <p className="text-2xl font-poppins font-semibold text-gray-800">
+                    <h1 className="text-4xl md:text-6xl font-dakdo font-bold text-[#ff0000] tracking-tight">THIS IS LAGOS</h1>
+                    <div className="space-y-3 md:space-y-4">
+                        <p className="text-xl md:text-2xl font-poppins font-semibold text-gray-800">
                             Blkat invites you to the pre seed launch of the African Creative Fund
                         </p>
-                        <p className="text-xl font-inter text-gray-600">📅 Date: November 20th, 2024 | ⏰ Time: 9:00 AM - 3:00 PM</p>
-                        <p className="text-xl font-inter text-gray-600">📍 Alliance Francaise, Ikoyi, Lagos</p>
+                        <p className="text-lg md:text-xl font-inter text-gray-600">📅 Date: November 20th, 2024 | ⏰ Time: 9:00 AM - 3:00 PM</p>
+                        <p className="text-lg md:text-xl font-inter text-gray-600">📍 Alliance Francaise, Ikoyi, Lagos</p>
                     </div>
                 </div>
             </div>
 
             {/* Registration Form Section */}
-            <div className="py-12 px-4 sm:px-6 lg:px-8">
+            <div className="py-8 md:py-12 px-4 sm:px-6 lg:px-8">
                 <div className="container mx-auto max-w-4xl">
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                         <Card className="shadow-xl border-2">
-                            <CardContent className="p-10">
+                            <CardContent className="p-6 md:p-10">
                                 <div className="mb-10 text-center">
                                     <h2 className="text-3xl font-dakdo font-bold text-gray-900 mb-3">Registration Form</h2>
                                     <p className="text-lg font-inter text-gray-600">Fill in your details to secure your spot at the event</p>
@@ -528,7 +560,7 @@ export default function EventRegistration() {
                                 {/* Hidden canvas for generating social card */}
                                 <canvas ref={canvasRef} className="hidden" />
                                 {/* Add Success Modal */}
-                                <SuccessModal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} socialCardUrl={socialCardUrl} />
+                                <SuccessModal isOpen={showSuccessModal} onClose={handleModalClose} socialCardUrl={socialCardUrl} />
                             </CardContent>
                         </Card>
                     </motion.div>
