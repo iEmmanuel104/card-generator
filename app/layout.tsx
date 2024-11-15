@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Inter, Poppins, Open_Sans, Plus_Jakarta_Sans } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -55,7 +56,25 @@ export default function RootLayout({
                 className={`${dakdo.variable} ${inter.variable} ${poppins.variable} ${geistSans.variable} ${geistMono.variable} font-inter antialiased`}
             >
                 {children}
-            </body>{" "}
+                <Toaster
+                    position="top-center"
+                    toastOptions={{
+                        duration: 5000,
+                        loading: {
+                            duration: Infinity,
+                        },
+                        success: {
+                            duration: 3000,
+                        },
+                        error: {
+                            duration: 4000,
+                        },
+                        style: {
+                            maxWidth: "500px",
+                        },
+                    }}
+                />
+            </body>
         </html>
     );
 }

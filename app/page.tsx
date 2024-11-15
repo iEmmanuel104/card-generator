@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Registration } from "@/lib/types";
@@ -106,7 +106,6 @@ export default function EventRegistration() {
             setIsUploadLoading(true);
             const uploadedUrl = await uploadFile(file);
             setFormData((prev) => ({ ...prev, photo: uploadedUrl }));
-            toast.success("Photo uploaded successfully!");
         } catch (error) {
             console.error("Upload error:", error);
             toast.error("Failed to upload photo. Please try again.");
@@ -255,11 +254,9 @@ const handleSubmit = async (e: React.FormEvent) => {
         }
 
         // Generate the social card
-        toast.info("Generating your social card...");
         const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
 
         // Upload social card to Cloudinary
-        toast.info("Uploading social card...");
         const socialCardUrl = await uploadToCloudinary(dataUrl);
 
         // Prepare registration data
@@ -272,7 +269,6 @@ const handleSubmit = async (e: React.FormEvent) => {
         };
 
         // Submit registration to API
-        toast.info("Completing registration...");
         const response = await fetch("/api/register", {
             method: "POST",
             headers: {
