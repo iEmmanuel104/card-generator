@@ -10,7 +10,16 @@ import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 
-const infoSlides = [
+interface SlideInfo {
+    title: string;
+    content: string;
+    bgColor: string;
+    textColor: string;
+    titleFont: string;
+    contentFont: string;
+}
+
+const infoSlides: SlideInfo[] = [
     {
         title: "Welcome to BLKAT",
         content:
@@ -49,13 +58,14 @@ const infoSlides = [
     },
 ];
 
-const InfoSlider = () => {
-    const [currentSlide, setCurrentSlide] = useState(0);
-    const [isPaused, setIsPaused] = useState(false);
-    const slideInterval = 12000; // 12 seconds
+const InfoSlider: React.FC = () => {
+    const [currentSlide, setCurrentSlide] = useState<number>(0);
+    const [isPaused, setIsPaused] = useState<boolean>(false);
+    const [touchStart, setTouchStart] = useState<number>(0);
+    const slideInterval = 10000;
 
     useEffect(() => {
-        let timer: NodeJS.Timeout;
+        let timer: NodeJS.Timeout | undefined;
 
         if (!isPaused) {
             timer = setInterval(() => {
@@ -63,68 +73,110 @@ const InfoSlider = () => {
             }, slideInterval);
         }
 
-        // Cleanup function
         return () => {
             if (timer) {
                 clearInterval(timer);
             }
         };
-    }, [isPaused]); // Only re-run effect when isPaused changes
+    }, [isPaused]);
+
+    const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>): void => {
+        setTouchStart(e.touches[0].clientX);
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>): void => {
+        const touchEnd = e.changedTouches[0].clientX;
+        const touchDiff = touchStart - touchEnd;
+
+        if (Math.abs(touchDiff) > 50) {
+            if (touchDiff > 0) {
+                // Swipe left
+                setCurrentSlide((prev) => (prev + 1) % infoSlides.length);
+            } else {
+                // Swipe right
+                setCurrentSlide((prev) => (prev - 1 + infoSlides.length) % infoSlides.length);
+            }
+        }
+    };
+
+    const goToSlide = (index: number): void => {
+        setCurrentSlide(index);
+        setIsPaused(true);
+        setTimeout(() => setIsPaused(false), 100);
+    };
 
     return (
-        <div
-            className="relative h-[350px] overflow-hidden rounded-xl mx-auto max-w-3xl mb-12"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-        >
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={currentSlide}
-                    initial={{ x: 300, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: -300, opacity: 0 }}
-                    transition={{ duration: 1, ease: "easeInOut" }}
-                    className={`absolute inset-0 ${infoSlides[currentSlide].bgColor} ${infoSlides[currentSlide].textColor} p-8 flex flex-col justify-center items-center text-center`}
-                >
-                    <h2 className={`text-4xl md:text-5xl ${infoSlides[currentSlide].titleFont} mb-6 uppercase tracking-wide`}>
-                        {infoSlides[currentSlide].title}
-                    </h2>
-                    <p className={`text-lg md:text-xl ${infoSlides[currentSlide].contentFont} leading-relaxed max-w-2xl`}>
-                        {infoSlides[currentSlide].content}
-                    </p>
-                </motion.div>
-            </AnimatePresence>
+        <div className="relative w-full h-full">
+            {/* Main slider container */}
+            <div
+                className="relative h-[350px] xs:h-[400px] sm:h-[450px] md:h-[500px] overflow-hidden rounded-xl"
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+            >
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={currentSlide}
+                        initial={{ x: 300, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: -300, opacity: 0 }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        className={`absolute inset-0 ${infoSlides[currentSlide].bgColor} ${infoSlides[currentSlide].textColor}`}
+                    >
+                        <div className="relative h-full flex flex-col justify-center items-center p-4 sm:p-6 md:p-8">
+                            <div className="w-full max-w-4xl mx-auto text-center space-y-4 sm:space-y-6">
+                                <h2
+                                    className={`${infoSlides[currentSlide].titleFont} text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-wide px-2`}
+                                >
+                                    {infoSlides[currentSlide].title}
+                                </h2>
+                                <p
+                                    className={`${infoSlides[currentSlide].contentFont} text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed px-2 sm:px-4 md:px-8 max-w-3xl mx-auto`}
+                                >
+                                    {infoSlides[currentSlide].content}
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
 
-            {/* Progress bar */}
-            {/* <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 w-64 h-1 bg-white/20 rounded-full overflow-hidden">
-                <motion.div
-                    className="h-full bg-white"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{
-                        duration: slideInterval / 1000, // Convert to seconds
-                        ease: "linear",
-                        repeat: 0,
-                    }}
-                    key={`progress-${currentSlide}`}
-                    style={{ transformOrigin: "0% 50%" }}
-                />
-            </div> */}
+                {/* Navigation arrows */}
+                <button
+                    onClick={() => goToSlide((currentSlide - 1 + infoSlides.length) % infoSlides.length)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors duration-200 hidden sm:block"
+                    aria-label="Previous slide"
+                >
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <button
+                    onClick={() => goToSlide((currentSlide + 1) % infoSlides.length)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors duration-200 hidden sm:block"
+                    aria-label="Next slide"
+                >
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
 
             {/* Navigation dots */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
+            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex items-center justify-center space-x-3 p-2">
                 {infoSlides.map((_, index) => (
                     <button
                         key={index}
-                        onClick={() => {
-                            setCurrentSlide(index);
-                            // Reset the timer when manually changing slides
-                            setIsPaused(true);
-                            setTimeout(() => setIsPaused(false), 100);
-                        }}
-                        className={`h-2 rounded-full transition-all duration-300 ${index === currentSlide ? "bg-white w-8" : "bg-white/50 w-2"}`}
+                        onClick={() => goToSlide(index)}
+                        className={`group relative p-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white rounded-full transition-all duration-300`}
                         aria-label={`Go to slide ${index + 1}`}
-                    />
+                    >
+                        <span
+                            className={`block h-2 rounded-full transition-all duration-300 ${
+                                index === currentSlide ? "w-8 bg-gray-800" : "w-2 bg-gray-400 group-hover:bg-gray-600"
+                            }`}
+                        />
+                    </button>
                 ))}
             </div>
         </div>
