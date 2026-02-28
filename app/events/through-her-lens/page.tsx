@@ -26,6 +26,283 @@ const particles = [
     { left: "25%", top: "65%", size: 3, delay: 4.5 },
 ];
 
+// ─── Card Drawing Helpers ───
+
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let current = words[0] || '';
+    for (let i = 1; i < words.length; i++) {
+        const test = current + ' ' + words[i];
+        if (ctx.measureText(test).width > maxWidth) {
+            lines.push(current);
+            current = words[i];
+        } else {
+            current = test;
+        }
+    }
+    lines.push(current);
+    if (lines.length > 2) {
+        lines[1] = lines[1].slice(0, -3) + '...';
+        lines.length = 2;
+    }
+    return lines;
+}
+
+function drawBackground(ctx: CanvasRenderingContext2D, W: number, H: number, isLight: boolean) {
+    if (isLight) {
+        ctx.fillStyle = "#f8f5f0";
+        ctx.fillRect(0, 0, W, H);
+        const grad = ctx.createRadialGradient(W / 2, H / 3, 0, W / 2, H / 3, H * 0.8);
+        grad.addColorStop(0, "#f8f5f0");
+        grad.addColorStop(1, "#efe8df");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+    } else {
+        ctx.fillStyle = "#050505";
+        ctx.fillRect(0, 0, W, H);
+        const grad = ctx.createRadialGradient(W / 2, H / 3, 0, W / 2, H / 3, H * 0.8);
+        grad.addColorStop(0, "#1a0808");
+        grad.addColorStop(0.5, "#0a0303");
+        grad.addColorStop(1, "#050505");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        const grad2 = ctx.createRadialGradient(0, H, 0, 0, H, H * 0.6);
+        grad2.addColorStop(0, "rgba(26,5,5,0.3)");
+        grad2.addColorStop(1, "transparent");
+        ctx.fillStyle = grad2;
+        ctx.fillRect(0, 0, W, H);
+    }
+}
+
+function drawDecorativeLines(ctx: CanvasRenderingContext2D, W: number, H: number, isLight: boolean) {
+    ctx.save();
+    ctx.strokeStyle = isLight ? "rgba(220,38,38,0.1)" : "rgba(220,38,38,0.15)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, 80);
+    ctx.lineTo(W * 0.4, H * 0.35);
+    ctx.stroke();
+
+    ctx.strokeStyle = isLight ? "rgba(220,38,38,0.05)" : "rgba(220,38,38,0.08)";
+    ctx.beginPath();
+    ctx.moveTo(W * 0.7, 0);
+    ctx.lineTo(W, H * 0.2);
+    ctx.stroke();
+    ctx.restore();
+}
+
+function drawLogo(ctx: CanvasRenderingContext2D, W: number, isLight: boolean) {
+    ctx.font = "700 42px Poppins";
+    const blkW = ctx.measureText("BLK").width;
+    const atW = ctx.measureText("@").width;
+    const startX = (W - blkW - atW) / 2;
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = isLight ? "#1a1a1a" : "#FFFFFF";
+    ctx.fillText("BLK", startX, 75);
+    ctx.fillStyle = "#dc2626";
+    ctx.fillText("@", startX + blkW, 75);
+    ctx.textAlign = "center";
+}
+
+function drawPresents(ctx: CanvasRenderingContext2D, W: number, isLight: boolean) {
+    ctx.fillStyle = isLight ? "#999999" : "#888888";
+    ctx.font = "300 14px Poppins";
+    ctx.textAlign = "center";
+    ctx.letterSpacing = "4px";
+    ctx.fillText("PRESENTS", W / 2, 115);
+    ctx.letterSpacing = "0px";
+}
+
+function drawPhoto(
+    ctx: CanvasRenderingContext2D,
+    W: number,
+    userImg: HTMLImageElement | null,
+    radius: number,
+    centerY: number,
+    isLight: boolean,
+) {
+    if (!userImg) return;
+    const photoCenterX = W / 2;
+
+    // Outer glow ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(photoCenterX, centerY, radius + 18, 0, Math.PI * 2);
+    ctx.strokeStyle = "#dc2626";
+    ctx.lineWidth = 1;
+    ctx.shadowColor = "#dc2626";
+    ctx.shadowBlur = isLight ? 15 : 25;
+    ctx.globalAlpha = 0.3;
+    ctx.stroke();
+    ctx.restore();
+
+    // Middle glow ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(photoCenterX, centerY, radius + 10, 0, Math.PI * 2);
+    ctx.strokeStyle = "#dc2626";
+    ctx.lineWidth = 2;
+    ctx.shadowColor = "#dc2626";
+    ctx.shadowBlur = isLight ? 10 : 15;
+    ctx.globalAlpha = 0.5;
+    ctx.stroke();
+    ctx.restore();
+
+    // Inner solid ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(photoCenterX, centerY, radius + 4, 0, Math.PI * 2);
+    ctx.strokeStyle = "#dc2626";
+    ctx.lineWidth = 3;
+    ctx.shadowColor = "#dc2626";
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+    ctx.restore();
+
+    // Clip and draw photo
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(photoCenterX, centerY, radius, 0, Math.PI * 2);
+    ctx.clip();
+
+    const photoSize = radius * 2;
+    const imgAspect = userImg.width / userImg.height;
+    let drawW, drawH;
+    if (imgAspect > 1) {
+        drawH = photoSize;
+        drawW = photoSize * imgAspect;
+    } else {
+        drawW = photoSize;
+        drawH = photoSize / imgAspect;
+    }
+    ctx.drawImage(userImg, photoCenterX - drawW / 2, centerY - drawH / 2, drawW, drawH);
+    ctx.restore();
+}
+
+function drawName(
+    ctx: CanvasRenderingContext2D,
+    W: number,
+    name: string,
+    nameY: number,
+    maxSize: number,
+    minSize: number,
+    isLight: boolean,
+) {
+    ctx.textAlign = "center";
+    const displayName = name.toUpperCase();
+    let fontSize = maxSize;
+    do {
+        ctx.font = `700 ${fontSize}px Poppins`;
+        fontSize--;
+    } while (ctx.measureText(displayName).width > W * 0.85 && fontSize > minSize);
+
+    ctx.shadowColor = "rgba(220,38,38,0.3)";
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = isLight ? "#1a1a1a" : "#FFFFFF";
+    ctx.fillText(displayName, W / 2, nameY);
+    ctx.shadowBlur = 0;
+}
+
+function drawBadge(ctx: CanvasRenderingContext2D, W: number, text: string, badgeY: number) {
+    ctx.font = "700 14px Poppins";
+    ctx.textAlign = "center";
+    const badgeW = ctx.measureText(text).width + 50;
+    const badgeH = 34;
+
+    ctx.shadowColor = "rgba(220,38,38,0.3)";
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = "#dc2626";
+    ctx.beginPath();
+    ctx.roundRect((W - badgeW) / 2, badgeY - badgeH / 2 - 5, badgeW, badgeH, 17);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText(text, W / 2, badgeY + 1);
+}
+
+function drawRedLine(ctx: CanvasRenderingContext2D, W: number, y: number) {
+    ctx.strokeStyle = "#dc2626";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 120, y);
+    ctx.lineTo(W / 2 + 120, y);
+    ctx.stroke();
+}
+
+function drawEventTitle(
+    ctx: CanvasRenderingContext2D,
+    W: number,
+    isLight: boolean,
+    sizes: { throughSize: number; herSize: number; lensSize: number; throughY: number; herY: number; lensY: number },
+) {
+    ctx.textAlign = "center";
+
+    // "THROUGH"
+    ctx.fillStyle = isLight ? "#333333" : "#FFFFFF";
+    ctx.font = `300 ${sizes.throughSize}px Poppins`;
+    ctx.letterSpacing = "6px";
+    ctx.fillText("THROUGH", W / 2, sizes.throughY);
+    ctx.letterSpacing = "0px";
+
+    // "Her"
+    ctx.fillStyle = "#dc2626";
+    ctx.font = `italic 700 ${sizes.herSize}px Playfair Display`;
+    const herWidth = ctx.measureText("Her").width;
+    ctx.fillText("Her", W / 2, sizes.herY);
+
+    // Decorative dashes flanking "Her"
+    ctx.strokeStyle = "rgba(220,38,38,0.4)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - herWidth / 2 - 30, sizes.herY - 12);
+    ctx.lineTo(W / 2 - herWidth / 2 - 8, sizes.herY - 12);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(W / 2 + herWidth / 2 + 8, sizes.herY - 12);
+    ctx.lineTo(W / 2 + herWidth / 2 + 30, sizes.herY - 12);
+    ctx.stroke();
+
+    // "Lens"
+    ctx.fillStyle = isLight ? "#333333" : "#FFFFFF";
+    ctx.font = `italic 400 ${sizes.lensSize}px Playfair Display`;
+    ctx.fillText("Lens", W / 2, sizes.lensY);
+}
+
+function drawThinSeparator(ctx: CanvasRenderingContext2D, W: number, y: number, isLight: boolean) {
+    ctx.strokeStyle = isLight ? "rgba(0,0,0,0.15)" : "rgba(136,136,136,0.3)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 200, y);
+    ctx.lineTo(W / 2 + 200, y);
+    ctx.stroke();
+}
+
+function drawEventDetails(
+    ctx: CanvasRenderingContext2D,
+    W: number,
+    isLight: boolean,
+    dateY: number,
+    venueY: number,
+    fontSize: number,
+) {
+    ctx.textAlign = "center";
+    ctx.fillStyle = isLight ? "#666666" : "#888888";
+    ctx.font = `400 ${fontSize}px Inter`;
+    ctx.fillText(`${eventConfig.date}  |  ${eventConfig.time}`, W / 2, dateY);
+    ctx.fillText(eventConfig.venue, W / 2, venueY);
+}
+
+function drawWatermark(ctx: CanvasRenderingContext2D, W: number, y: number, isLight: boolean) {
+    ctx.textAlign = "center";
+    ctx.fillStyle = isLight ? "rgba(0,0,0,0.15)" : "rgba(136,136,136,0.2)";
+    ctx.font = "300 10px Inter";
+    ctx.fillText("blkat.io", W / 2, y);
+}
+
 export default function ThroughHerLensRegistration() {
     const [role, setRole] = useState<RegistrationRole>("attendee");
     const [formData, setFormData] = useState<SpeakerFormData>({
@@ -47,7 +324,13 @@ export default function ThroughHerLensRegistration() {
 
     const isDark = pageTheme === 'dark';
 
-    const { uploadFile } = useCloudinaryUpload({ width: 500, height: 500 });
+    // Profile photos — 500x500 face-crop is correct
+    const { uploadFile: uploadProfilePhoto } = useCloudinaryUpload({ width: 500, height: 500 });
+
+    // Social cards — preserve full 1080x1080 resolution
+    const { uploadFile: uploadSocialCard } = useCloudinaryUpload({
+        width: 1080, height: 1080, crop: 'limit', gravity: 'center', quality: 100,
+    });
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,7 +362,7 @@ export default function ThroughHerLensRegistration() {
         if (!file) return;
         try {
             setIsUploadLoading(true);
-            const uploadedUrl = await uploadFile(file);
+            const uploadedUrl = await uploadProfilePhoto(file);
             setFormData((prev) => ({ ...prev, photo: uploadedUrl }));
         } catch (error) {
             console.error("Upload error:", error);
@@ -111,7 +394,7 @@ export default function ThroughHerLensRegistration() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "thl-social-card.jpg";
+        a.download = "thl-social-card.png";
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -139,226 +422,90 @@ export default function ThroughHerLensRegistration() {
         canvas.width = W;
         canvas.height = H;
 
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+
         const isLight = pageTheme === 'light';
 
         await document.fonts.ready;
 
-        const [logoImg, userImg] = await Promise.all([
-            loadImage("/images/logo.png"),
-            formData.photo ? loadImage(formData.photo) : Promise.resolve(null),
-        ]);
+        const userImg = formData.photo ? await loadImage(formData.photo) : null;
 
-        // 1. Background
-        if (isLight) {
-            ctx.fillStyle = "#f8f5f0";
-            ctx.fillRect(0, 0, W, H);
-            const grad = ctx.createRadialGradient(W / 2, H / 3, 0, W / 2, H / 3, H * 0.8);
-            grad.addColorStop(0, "#f8f5f0");
-            grad.addColorStop(1, "#efe8df");
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, W, H);
-        } else {
-            ctx.fillStyle = "#050505";
-            ctx.fillRect(0, 0, W, H);
-            const grad = ctx.createRadialGradient(W / 2, H / 3, 0, W / 2, H / 3, H * 0.8);
-            grad.addColorStop(0, "#1a0808");
-            grad.addColorStop(0.5, "#0a0303");
-            grad.addColorStop(1, "#050505");
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, W, H);
+        // Shared elements
+        drawBackground(ctx, W, H, isLight);
+        drawDecorativeLines(ctx, W, H, isLight);
+        drawLogo(ctx, W, isLight);
+        drawPresents(ctx, W, isLight);
 
-            const grad2 = ctx.createRadialGradient(0, H, 0, 0, H, H * 0.6);
-            grad2.addColorStop(0, "rgba(26,5,5,0.3)");
-            grad2.addColorStop(1, "transparent");
-            ctx.fillStyle = grad2;
-            ctx.fillRect(0, 0, W, H);
-        }
+        // Role-specific layout
+        if (role === 'speaker') {
+            // Speaker layout — slightly compact to fit talk title
+            drawPhoto(ctx, W, userImg, 160, 310, isLight);
+            drawName(ctx, W, formData.name, 525, 44, 22, isLight);
+            drawBadge(ctx, W, "SPEAKER", 565);
+            drawRedLine(ctx, W, 600);
 
-        // 2. Decorative diagonal lines
-        ctx.save();
-        ctx.strokeStyle = isLight ? "rgba(220,38,38,0.1)" : "rgba(220,38,38,0.15)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(0, 80);
-        ctx.lineTo(W * 0.4, H * 0.35);
-        ctx.stroke();
+            // "SPEAKING ON"
+            ctx.textAlign = "center";
+            ctx.fillStyle = isLight ? "#666666" : "#888888";
+            ctx.font = "300 13px Poppins";
+            ctx.letterSpacing = "3px";
+            ctx.fillText("SPEAKING ON", W / 2, 632);
+            ctx.letterSpacing = "0px";
 
-        ctx.strokeStyle = isLight ? "rgba(220,38,38,0.05)" : "rgba(220,38,38,0.08)";
-        ctx.beginPath();
-        ctx.moveTo(W * 0.7, 0);
-        ctx.lineTo(W, H * 0.2);
-        ctx.stroke();
-        ctx.restore();
-
-        // 3. BLK@ logo
-        const logoH = 50;
-        const logoW = (logoImg.width / logoImg.height) * logoH;
-        ctx.drawImage(logoImg, (W - logoW) / 2, 40, logoW, logoH);
-
-        // "PRESENTS"
-        ctx.fillStyle = isLight ? "#999999" : "#888888";
-        ctx.font = "300 14px Poppins";
-        ctx.textAlign = "center";
-        ctx.letterSpacing = "4px";
-        ctx.fillText("PRESENTS", W / 2, 115);
-        ctx.letterSpacing = "0px";
-
-        // 4. User photo with glow rings
-        if (userImg) {
-            const photoRadius = 180;
-            const photoCenterX = W / 2;
-            const photoCenterY = 330;
-
-            // Outer glow ring
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(photoCenterX, photoCenterY, photoRadius + 18, 0, Math.PI * 2);
-            ctx.strokeStyle = "#dc2626";
-            ctx.lineWidth = 1;
-            ctx.shadowColor = "#dc2626";
-            ctx.shadowBlur = isLight ? 15 : 25;
-            ctx.globalAlpha = 0.3;
-            ctx.stroke();
-            ctx.restore();
-
-            // Middle glow ring
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(photoCenterX, photoCenterY, photoRadius + 10, 0, Math.PI * 2);
-            ctx.strokeStyle = "#dc2626";
-            ctx.lineWidth = 2;
-            ctx.shadowColor = "#dc2626";
-            ctx.shadowBlur = isLight ? 10 : 15;
-            ctx.globalAlpha = 0.5;
-            ctx.stroke();
-            ctx.restore();
-
-            // Inner solid ring
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(photoCenterX, photoCenterY, photoRadius + 4, 0, Math.PI * 2);
-            ctx.strokeStyle = "#dc2626";
-            ctx.lineWidth = 3;
-            ctx.shadowColor = "#dc2626";
-            ctx.shadowBlur = 8;
-            ctx.stroke();
-            ctx.restore();
-
-            // Clip and draw photo
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(photoCenterX, photoCenterY, photoRadius, 0, Math.PI * 2);
-            ctx.clip();
-
-            const photoSize = photoRadius * 2;
-            const imgAspect = userImg.width / userImg.height;
-            let drawW, drawH;
-            if (imgAspect > 1) {
-                drawH = photoSize;
-                drawW = photoSize * imgAspect;
-            } else {
-                drawW = photoSize;
-                drawH = photoSize / imgAspect;
+            // Talk title (word-wrapped, max 2 lines)
+            ctx.font = "italic 500 18px Poppins";
+            ctx.fillStyle = "#dc2626";
+            const titleLines = wrapText(ctx, formData.talkTitle || "", W * 0.75);
+            let titleY = 660;
+            for (const line of titleLines) {
+                ctx.fillText(line, W / 2, titleY);
+                titleY += 26;
             }
-            ctx.drawImage(userImg, photoCenterX - drawW / 2, photoCenterY - drawH / 2, drawW, drawH);
-            ctx.restore();
+
+            // Dynamic Y positioning from here
+            let dynY = titleY + 10;
+
+            // "AT"
+            ctx.fillStyle = isLight ? "#666666" : "#888888";
+            ctx.font = "300 13px Poppins";
+            ctx.letterSpacing = "3px";
+            ctx.fillText("AT", W / 2, dynY);
+            ctx.letterSpacing = "0px";
+
+            drawEventTitle(ctx, W, isLight, {
+                throughSize: 18, herSize: 52, lensSize: 36,
+                throughY: dynY + 30, herY: dynY + 78, lensY: dynY + 118,
+            });
+            drawThinSeparator(ctx, W, dynY + 145, isLight);
+            drawEventDetails(ctx, W, isLight, dynY + 173, dynY + 195, 15);
+            drawWatermark(ctx, W, dynY + 230, isLight);
+        } else {
+            // Attendee layout
+            drawPhoto(ctx, W, userImg, 170, 320, isLight);
+            drawName(ctx, W, formData.name, 550, 48, 24, isLight);
+            drawBadge(ctx, W, "ATTENDEE", 590);
+            drawRedLine(ctx, W, 630);
+
+            // "I'LL BE ATTENDING"
+            ctx.textAlign = "center";
+            ctx.fillStyle = isLight ? "#666666" : "#888888";
+            ctx.font = "300 16px Poppins";
+            ctx.letterSpacing = "3px";
+            ctx.fillText("I'LL BE ATTENDING", W / 2, 665);
+            ctx.letterSpacing = "0px";
+
+            drawEventTitle(ctx, W, isLight, {
+                throughSize: 20, herSize: 64, lensSize: 44,
+                throughY: 710, herY: 765, lensY: 815,
+            });
+            drawThinSeparator(ctx, W, 845, isLight);
+            drawEventDetails(ctx, W, isLight, 875, 900, 16);
+            drawWatermark(ctx, W, 940, isLight);
         }
 
-        // 5. User name
-        const nameY = 560;
-        ctx.textAlign = "center";
-        const displayName = formData.name.toUpperCase();
-        let nameFontSize = 48;
-        do {
-            ctx.font = `700 ${nameFontSize}px Poppins`;
-            nameFontSize--;
-        } while (ctx.measureText(displayName).width > W * 0.85 && nameFontSize > 24);
-
-        ctx.shadowColor = "rgba(220,38,38,0.3)";
-        ctx.shadowBlur = 10;
-        ctx.fillStyle = isLight ? "#1a1a1a" : "#FFFFFF";
-        ctx.fillText(displayName, W / 2, nameY);
-        ctx.shadowBlur = 0;
-
-        // 6. Role badge
-        const badgeY = 600;
-        const badgeText = role.toUpperCase();
-        ctx.font = "700 14px Poppins";
-        const badgeW = ctx.measureText(badgeText).width + 50;
-        const badgeH = 34;
-
-        ctx.shadowColor = "rgba(220,38,38,0.3)";
-        ctx.shadowBlur = 12;
-        ctx.fillStyle = "#dc2626";
-        ctx.beginPath();
-        ctx.roundRect((W - badgeW) / 2, badgeY - badgeH / 2 - 5, badgeW, badgeH, 17);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillText(badgeText, W / 2, badgeY + 1);
-
-        // 7. Decorative red line
-        const lineY = 640;
-        ctx.strokeStyle = "#dc2626";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(W / 2 - 120, lineY);
-        ctx.lineTo(W / 2 + 120, lineY);
-        ctx.stroke();
-
-        // 8. "THROUGH HER LENS"
-        const titleBaseY = 680;
-        ctx.fillStyle = isLight ? "#333333" : "#FFFFFF";
-        ctx.font = "300 20px Poppins";
-        ctx.letterSpacing = "6px";
-        ctx.fillText("THROUGH", W / 2, titleBaseY);
-        ctx.letterSpacing = "0px";
-
-        const herY = 735;
-        ctx.fillStyle = "#dc2626";
-        ctx.font = "italic 700 64px Playfair Display";
-        const herWidth = ctx.measureText("Her").width;
-        ctx.fillText("Her", W / 2, herY);
-
-        // Small decorative dashes flanking "Her"
-        ctx.strokeStyle = "rgba(220,38,38,0.4)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(W / 2 - herWidth / 2 - 30, herY - 12);
-        ctx.lineTo(W / 2 - herWidth / 2 - 8, herY - 12);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(W / 2 + herWidth / 2 + 8, herY - 12);
-        ctx.lineTo(W / 2 + herWidth / 2 + 30, herY - 12);
-        ctx.stroke();
-
-        ctx.fillStyle = isLight ? "#333333" : "#FFFFFF";
-        ctx.font = "italic 400 44px Playfair Display";
-        ctx.fillText("Lens", W / 2, 785);
-
-        // Thin separator
-        const sepY = 810;
-        ctx.strokeStyle = isLight ? "rgba(0,0,0,0.15)" : "rgba(136,136,136,0.3)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(W / 2 - 200, sepY);
-        ctx.lineTo(W / 2 + 200, sepY);
-        ctx.stroke();
-
-        // 9. Event details
-        ctx.fillStyle = isLight ? "#666666" : "#888888";
-        ctx.font = "400 16px Inter";
-        ctx.fillText(`${eventConfig.date}  |  ${eventConfig.time}`, W / 2, 845);
-        ctx.fillText(eventConfig.venue, W / 2, 870);
-
-        // 10. Watermark
-        ctx.fillStyle = isLight ? "rgba(0,0,0,0.15)" : "rgba(136,136,136,0.2)";
-        ctx.font = "300 10px Inter";
-        ctx.fillText("blkat.io", W / 2, 910);
-
-        return canvas.toDataURL("image/jpeg", 0.95);
-    }, [formData.photo, formData.name, role, pageTheme]);
+        return canvas.toDataURL("image/png");
+    }, [formData.photo, formData.name, formData.talkTitle, role, pageTheme]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -368,8 +515,8 @@ export default function ThroughHerLensRegistration() {
             const cardDataUrl = await generateCard();
             const response = await fetch(cardDataUrl);
             const blob = await response.blob();
-            const file = new File([blob], "thl-social-card.jpg", { type: "image/jpeg" });
-            const cardUrl = await uploadFile(file);
+            const file = new File([blob], "thl-social-card.png", { type: "image/png" });
+            const cardUrl = await uploadSocialCard(file);
 
             const registrationData = {
                 name: formData.name,

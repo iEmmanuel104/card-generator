@@ -47,7 +47,7 @@ export function SuccessModal({
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `${eventName}-social-card.jpg`;
+            a.download = `${eventName}-social-card.png`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
