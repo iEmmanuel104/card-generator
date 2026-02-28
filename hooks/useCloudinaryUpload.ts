@@ -1,6 +1,14 @@
 // hooks/useCloudinaryUpload.ts
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from 'react-hot-toast';
+
+export interface CloudinaryUploadOptions {
+    width?: number;
+    height?: number;
+    crop?: string;
+    gravity?: string;
+    quality?: number;
+}
 
 interface UseCloudinaryUploadReturn {
     uploadFile: (file: File) => Promise<string>;
@@ -8,9 +16,19 @@ interface UseCloudinaryUploadReturn {
     error: string | null;
 }
 
-export function useCloudinaryUpload(): UseCloudinaryUploadReturn {
+const defaultOptions: CloudinaryUploadOptions = {
+    width: 500,
+    height: 500,
+    crop: 'fill',
+    gravity: 'face',
+    quality: 100,
+};
+
+export function useCloudinaryUpload(options?: CloudinaryUploadOptions): UseCloudinaryUploadReturn {
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const opts = { ...defaultOptions, ...options };
 
     const uploadFile = async (file: File): Promise<string> => {
         setIsUploading(true);
@@ -41,7 +59,7 @@ export function useCloudinaryUpload(): UseCloudinaryUploadReturn {
 
             // Apply transformations to the URL
             const baseUrl = data.secure_url.split('/upload/')[0] + '/upload/';
-            const transformations = 'c_fill,g_face,w_398,h_488,q_100/';
+            const transformations = `c_${opts.crop},g_${opts.gravity},w_${opts.width},h_${opts.height},q_${opts.quality}/`;
             const filename = data.secure_url.split('/upload/')[1];
             return baseUrl + transformations + filename;
         } catch (err) {

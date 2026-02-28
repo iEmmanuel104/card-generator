@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Inter, Poppins, Open_Sans, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Poppins, Playfair_Display } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
@@ -17,7 +17,6 @@ const dakdo = localFont({
             weight: "600",
             style: "normal",
         },
-        // Add more weights if available
     ],
     variable: "--font-dakdo",
 });
@@ -35,14 +34,21 @@ const inter = Inter({
 });
 
 const poppins = Poppins({
-    weight: ["100", "200", "300", "400", "500", "600"],
+    weight: ["100", "200", "300", "400", "500", "600", "700"],
     subsets: ["latin"],
     variable: "--font-poppins",
 });
 
+const playfair = Playfair_Display({
+    weight: ["400", "600", "700"],
+    subsets: ["latin"],
+    style: ["normal", "italic"],
+    variable: "--font-playfair",
+});
+
 export const metadata: Metadata = {
-    title: "Blkat Events",
-    description: "Blkat Events is a platform for hosting and discovering events.",
+    title: "BLK@ Events",
+    description: "Register for upcoming BLK@ events",
 };
 
 export default function RootLayout({
@@ -53,7 +59,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body
-                className={`${dakdo.variable} ${inter.variable} ${poppins.variable} ${geistSans.variable} ${geistMono.variable} font-inter antialiased`}
+                className={`${dakdo.variable} ${inter.variable} ${poppins.variable} ${playfair.variable} ${geistSans.variable} ${geistMono.variable} font-inter antialiased`}
             >
                 {children}
                 <Toaster
