@@ -36,13 +36,58 @@ interface ApiResponse {
     stats: Stats;
 }
 
+interface WaitlistEntry {
+    _id: string;
+    name: string;
+    email: string;
+    position: string;
+    expectation: string;
+    createdAt: string;
+}
+
+interface WaitlistStats {
+    total: number;
+    byPosition: Record<string, number>;
+}
+
+interface WaitlistApiResponse {
+    data: WaitlistEntry[];
+    total: number;
+    page: number;
+    totalPages: number;
+    stats: WaitlistStats;
+}
+
 const EVENT_TABS = [
     { slug: "", label: "All Events" },
     { slug: "through-her-lens", label: "Through Her Lens" },
     { slug: "this-is-lagos", label: "This Is Lagos" },
 ] as const;
 
+const POSITION_OPTIONS = [
+    "Developer",
+    "Designer",
+    "Founder / CEO",
+    "Product Manager",
+    "Content Creator",
+    "Student",
+    "Other",
+];
+
+const POSITION_COLORS: Record<string, string> = {
+    "Developer": "bg-blue-50 text-blue-600",
+    "Designer": "bg-purple-50 text-purple-600",
+    "Founder / CEO": "bg-amber-50 text-amber-700",
+    "Product Manager": "bg-green-50 text-green-600",
+    "Content Creator": "bg-pink-50 text-pink-600",
+    "Student": "bg-teal-50 text-teal-600",
+    "Other": "bg-gray-100 text-gray-600",
+};
+
 export default function AdminPage() {
+    const [adminView, setAdminView] = useState<"registrations" | "waitlist">("registrations");
+
+    // Registration state
     const [data, setData] = useState<Registration[]>([]);
     const [stats, setStats] = useState<Stats>({ total: 0, speakers: 0, attendees: 0, emailsSent: 0 });
     const [page, setPage] = useState(1);
@@ -54,8 +99,21 @@ export default function AdminPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
 
-    const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // Waitlist state
+    const [waitlistData, setWaitlistData] = useState<WaitlistEntry[]>([]);
+    const [waitlistStats, setWaitlistStats] = useState<WaitlistStats>({ total: 0, byPosition: {} });
+    const [waitlistPage, setWaitlistPage] = useState(1);
+    const [waitlistTotalPages, setWaitlistTotalPages] = useState(1);
+    const [waitlistTotal, setWaitlistTotal] = useState(0);
+    const [waitlistPosition, setWaitlistPosition] = useState("");
+    const [waitlistSearchInput, setWaitlistSearchInput] = useState("");
+    const [waitlistSearchQuery, setWaitlistSearchQuery] = useState("");
+    const [waitlistLoading, setWaitlistLoading] = useState(true);
 
+    const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const waitlistDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Registration search debounce
     useEffect(() => {
         if (debounceTimer.current) clearTimeout(debounceTimer.current);
         debounceTimer.current = setTimeout(() => {
@@ -67,6 +125,19 @@ export default function AdminPage() {
         };
     }, [searchInput]);
 
+    // Waitlist search debounce
+    useEffect(() => {
+        if (waitlistDebounceTimer.current) clearTimeout(waitlistDebounceTimer.current);
+        waitlistDebounceTimer.current = setTimeout(() => {
+            setWaitlistSearchQuery(waitlistSearchInput);
+            setWaitlistPage(1);
+        }, 300);
+        return () => {
+            if (waitlistDebounceTimer.current) clearTimeout(waitlistDebounceTimer.current);
+        };
+    }, [waitlistSearchInput]);
+
+    // Fetch registrations
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
@@ -92,9 +163,38 @@ export default function AdminPage() {
         }
     }, [activeEvent, roleFilter, searchQuery, page]);
 
+    // Fetch waitlist
+    const fetchWaitlist = useCallback(async () => {
+        setWaitlistLoading(true);
+        try {
+            const params = new URLSearchParams();
+            if (waitlistPosition) params.set("position", waitlistPosition);
+            if (waitlistSearchQuery) params.set("search", waitlistSearchQuery);
+            params.set("page", String(waitlistPage));
+            params.set("limit", "20");
+
+            const res = await fetch(`/api/waitlist?${params.toString()}`);
+            if (!res.ok) throw new Error("Failed to fetch");
+
+            const json: WaitlistApiResponse = await res.json();
+            setWaitlistData(json.data);
+            setWaitlistStats(json.stats);
+            setWaitlistTotal(json.total);
+            setWaitlistTotalPages(json.totalPages);
+        } catch (error) {
+            console.error("Error fetching waitlist:", error);
+        } finally {
+            setWaitlistLoading(false);
+        }
+    }, [waitlistPosition, waitlistSearchQuery, waitlistPage]);
+
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        if (adminView === "registrations") fetchData();
+    }, [fetchData, adminView]);
+
+    useEffect(() => {
+        if (adminView === "waitlist") fetchWaitlist();
+    }, [fetchWaitlist, adminView]);
 
     const handleExport = () => {
         const params = new URLSearchParams();
@@ -102,6 +202,13 @@ export default function AdminPage() {
         if (roleFilter) params.set("role", roleFilter);
         if (searchQuery) params.set("search", searchQuery);
         window.open(`/api/registrations/export?${params.toString()}`, "_blank");
+    };
+
+    const handleWaitlistExport = () => {
+        const params = new URLSearchParams();
+        if (waitlistPosition) params.set("position", waitlistPosition);
+        if (waitlistSearchQuery) params.set("search", waitlistSearchQuery);
+        window.open(`/api/waitlist/export?${params.toString()}`, "_blank");
     };
 
     const handleEventTab = (slug: string) => {
@@ -112,6 +219,11 @@ export default function AdminPage() {
     const handleRoleChange = (value: string) => {
         setRoleFilter(value);
         setPage(1);
+    };
+
+    const handleWaitlistPositionChange = (value: string) => {
+        setWaitlistPosition(value);
+        setWaitlistPage(1);
     };
 
     const formatDate = (dateStr: string) => {
@@ -130,6 +242,10 @@ export default function AdminPage() {
             default: return slug;
         }
     };
+
+    const topPositions = Object.entries(waitlistStats.byPosition)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 3);
 
     return (
         <div className="min-h-screen bg-white text-gray-900 font-poppins">
@@ -151,202 +267,381 @@ export default function AdminPage() {
             </header>
 
             <main className="max-w-7xl mx-auto px-6 py-8">
-                {/* Stats Row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                        <p className="text-3xl font-bold text-[#dc2626] font-inter">{stats.total}</p>
-                        <p className="text-gray-500 text-sm mt-1 font-inter">Total Registrations</p>
-                    </div>
-                    <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                        <p className="text-3xl font-bold text-[#dc2626] font-inter">{stats.speakers}</p>
-                        <p className="text-gray-500 text-sm mt-1 font-inter">Speakers</p>
-                    </div>
-                    <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                        <p className="text-3xl font-bold text-[#dc2626] font-inter">{stats.attendees}</p>
-                        <p className="text-gray-500 text-sm mt-1 font-inter">Attendees</p>
-                    </div>
-                    <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                        <p className="text-3xl font-bold text-[#dc2626] font-inter">{stats.emailsSent}</p>
-                        <p className="text-gray-500 text-sm mt-1 font-inter">Emails Sent</p>
-                    </div>
-                </div>
-
-                {/* Event Tabs */}
-                <div className="flex items-center gap-1 mb-6 border-b border-gray-200 overflow-x-auto">
-                    {EVENT_TABS.map((tab) => (
-                        <button
-                            key={tab.slug}
-                            onClick={() => handleEventTab(tab.slug)}
-                            className={`px-4 py-3 text-sm font-medium font-inter whitespace-nowrap transition-colors border-b-2 -mb-px ${
-                                activeEvent === tab.slug
-                                    ? "border-[#dc2626] text-[#dc2626]"
-                                    : "border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300"
-                            }`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Filter Bar */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
-                    <select
-                        value={roleFilter}
-                        onChange={(e) => handleRoleChange(e.target.value)}
-                        className="bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm font-inter focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
-                    >
-                        <option value="">All Roles</option>
-                        <option value="attendee">Attendee</option>
-                        <option value="speaker">Speaker</option>
-                    </select>
-
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Search by name or email..."
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg pl-9 pr-3 py-2 text-sm placeholder-gray-400 font-inter focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
-                        />
-                    </div>
-
+                {/* Primary View Toggle */}
+                <div className="flex items-center gap-1 mb-8 border-b border-gray-200">
                     <button
-                        onClick={handleExport}
-                        className="bg-[#dc2626] hover:bg-[#b91c1c] text-white rounded-lg px-4 py-2 text-sm font-medium font-inter flex items-center justify-center gap-2 transition-colors shrink-0"
+                        onClick={() => setAdminView("registrations")}
+                        className={`px-5 py-3 text-sm font-semibold font-inter whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                            adminView === "registrations"
+                                ? "border-[#dc2626] text-[#dc2626]"
+                                : "border-transparent text-gray-400 hover:text-gray-900 hover:border-gray-300"
+                        }`}
                     >
-                        <Download className="w-4 h-4" />
-                        Export CSV
+                        Registrations
+                    </button>
+                    <button
+                        onClick={() => setAdminView("waitlist")}
+                        className={`px-5 py-3 text-sm font-semibold font-inter whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                            adminView === "waitlist"
+                                ? "border-[#dc2626] text-[#dc2626]"
+                                : "border-transparent text-gray-400 hover:text-gray-900 hover:border-gray-300"
+                        }`}
+                    >
+                        Waitlist
                     </button>
                 </div>
 
-                {/* Data Table */}
-                {loading ? (
-                    <div className="flex items-center justify-center py-20">
-                        <div className="w-8 h-8 border-2 border-[#dc2626] border-t-transparent rounded-full animate-spin" />
-                    </div>
-                ) : data.length === 0 ? (
-                    <div className="text-center py-20 border border-gray-200 rounded-xl bg-gray-50">
-                        <p className="text-gray-400 text-lg font-inter">No registrations found</p>
-                        <p className="text-gray-400 text-sm mt-2 font-inter">
-                            Try adjusting your filters or search query.
-                        </p>
-                    </div>
-                ) : (
+                {adminView === "registrations" ? (
                     <>
-                        <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                            <table className="w-full min-w-[800px] font-inter">
-                                <thead>
-                                    <tr className="border-b border-gray-200 bg-gray-50">
-                                        <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
-                                            Name
-                                        </th>
-                                        <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
-                                            Email
-                                        </th>
-                                        <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
-                                            Phone
-                                        </th>
-                                        <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
-                                            Organization
-                                        </th>
-                                        <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
-                                            Role
-                                        </th>
-                                        {!activeEvent && (
-                                            <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
-                                                Event
-                                            </th>
-                                        )}
-                                        <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
-                                            Email Sent
-                                        </th>
-                                        <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
-                                            Date
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.map((registration, index) => (
-                                        <tr
-                                            key={registration._id}
-                                            className={`border-b border-gray-100 ${
-                                                index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
-                                            } hover:bg-gray-50 transition-colors`}
-                                        >
-                                            <td className="px-4 py-3 text-sm text-gray-900 font-medium">
-                                                {registration.name}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-600">
-                                                {registration.email}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-600">
-                                                {registration.phoneNumber}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-400">
-                                                {registration.organization || "\u2014"}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span
-                                                    className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
-                                                        registration.role === "speaker"
-                                                            ? "bg-[#dc2626]/10 text-[#dc2626]"
-                                                            : "bg-blue-50 text-blue-600"
-                                                    }`}
-                                                >
-                                                    {registration.role}
-                                                </span>
-                                            </td>
-                                            {!activeEvent && (
-                                                <td className="px-4 py-3 text-sm text-gray-600">
-                                                    {formatEventName(registration.event)}
-                                                </td>
-                                            )}
-                                            <td className="px-4 py-3">
-                                                <span
-                                                    className={`w-2 h-2 rounded-full inline-block ${
-                                                        registration.emailSent ? "bg-green-500" : "bg-red-400"
-                                                    }`}
-                                                />
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-400">
-                                                {formatDate(registration.createdAt)}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination */}
-                        <div className="flex items-center justify-between mt-6">
-                            <p className="text-sm text-gray-500 font-inter">
-                                Showing {(page - 1) * 20 + 1}
-                                {"\u2013"}
-                                {Math.min(page * 20, total)} of {total} results
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                    disabled={page <= 1}
-                                    className="bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-1 font-inter"
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                    Prev
-                                </button>
-                                <span className="text-sm text-gray-500 px-2 font-inter">
-                                    Page {page} of {totalPages}
-                                </span>
-                                <button
-                                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                                    disabled={page >= totalPages}
-                                    className="bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-1 font-inter"
-                                >
-                                    Next
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
+                        {/* Stats Row */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                <p className="text-3xl font-bold text-[#dc2626] font-inter">{stats.total}</p>
+                                <p className="text-gray-500 text-sm mt-1 font-inter">Total Registrations</p>
+                            </div>
+                            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                <p className="text-3xl font-bold text-[#dc2626] font-inter">{stats.speakers}</p>
+                                <p className="text-gray-500 text-sm mt-1 font-inter">Speakers</p>
+                            </div>
+                            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                <p className="text-3xl font-bold text-[#dc2626] font-inter">{stats.attendees}</p>
+                                <p className="text-gray-500 text-sm mt-1 font-inter">Attendees</p>
+                            </div>
+                            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                <p className="text-3xl font-bold text-[#dc2626] font-inter">{stats.emailsSent}</p>
+                                <p className="text-gray-500 text-sm mt-1 font-inter">Emails Sent</p>
                             </div>
                         </div>
+
+                        {/* Event Tabs */}
+                        <div className="flex items-center gap-1 mb-6 border-b border-gray-200 overflow-x-auto">
+                            {EVENT_TABS.map((tab) => (
+                                <button
+                                    key={tab.slug}
+                                    onClick={() => handleEventTab(tab.slug)}
+                                    className={`px-4 py-3 text-sm font-medium font-inter whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                                        activeEvent === tab.slug
+                                            ? "border-[#dc2626] text-[#dc2626]"
+                                            : "border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300"
+                                    }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Filter Bar */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+                            <select
+                                value={roleFilter}
+                                onChange={(e) => handleRoleChange(e.target.value)}
+                                className="bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm font-inter focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
+                            >
+                                <option value="">All Roles</option>
+                                <option value="attendee">Attendee</option>
+                                <option value="speaker">Speaker</option>
+                            </select>
+
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by name or email..."
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg pl-9 pr-3 py-2 text-sm placeholder-gray-400 font-inter focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
+                                />
+                            </div>
+
+                            <button
+                                onClick={handleExport}
+                                className="bg-[#dc2626] hover:bg-[#b91c1c] text-white rounded-lg px-4 py-2 text-sm font-medium font-inter flex items-center justify-center gap-2 transition-colors shrink-0"
+                            >
+                                <Download className="w-4 h-4" />
+                                Export CSV
+                            </button>
+                        </div>
+
+                        {/* Data Table */}
+                        {loading ? (
+                            <div className="flex items-center justify-center py-20">
+                                <div className="w-8 h-8 border-2 border-[#dc2626] border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        ) : data.length === 0 ? (
+                            <div className="text-center py-20 border border-gray-200 rounded-xl bg-gray-50">
+                                <p className="text-gray-400 text-lg font-inter">No registrations found</p>
+                                <p className="text-gray-400 text-sm mt-2 font-inter">
+                                    Try adjusting your filters or search query.
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                                    <table className="w-full min-w-[800px] font-inter">
+                                        <thead>
+                                            <tr className="border-b border-gray-200 bg-gray-50">
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Name
+                                                </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Email
+                                                </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Phone
+                                                </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Organization
+                                                </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Role
+                                                </th>
+                                                {!activeEvent && (
+                                                    <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                        Event
+                                                    </th>
+                                                )}
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Email Sent
+                                                </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Date
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {data.map((registration, index) => (
+                                                <tr
+                                                    key={registration._id}
+                                                    className={`border-b border-gray-100 ${
+                                                        index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                                                    } hover:bg-gray-50 transition-colors`}
+                                                >
+                                                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                                                        {registration.name}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-600">
+                                                        {registration.email}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-600">
+                                                        {registration.phoneNumber}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-400">
+                                                        {registration.organization || "\u2014"}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span
+                                                            className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+                                                                registration.role === "speaker"
+                                                                    ? "bg-[#dc2626]/10 text-[#dc2626]"
+                                                                    : "bg-blue-50 text-blue-600"
+                                                            }`}
+                                                        >
+                                                            {registration.role}
+                                                        </span>
+                                                    </td>
+                                                    {!activeEvent && (
+                                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                                            {formatEventName(registration.event)}
+                                                        </td>
+                                                    )}
+                                                    <td className="px-4 py-3">
+                                                        <span
+                                                            className={`w-2 h-2 rounded-full inline-block ${
+                                                                registration.emailSent ? "bg-green-500" : "bg-red-400"
+                                                            }`}
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-400">
+                                                        {formatDate(registration.createdAt)}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Pagination */}
+                                <div className="flex items-center justify-between mt-6">
+                                    <p className="text-sm text-gray-500 font-inter">
+                                        Showing {(page - 1) * 20 + 1}
+                                        {"\u2013"}
+                                        {Math.min(page * 20, total)} of {total} results
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                            disabled={page <= 1}
+                                            className="bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-1 font-inter"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                            Prev
+                                        </button>
+                                        <span className="text-sm text-gray-500 px-2 font-inter">
+                                            Page {page} of {totalPages}
+                                        </span>
+                                        <button
+                                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                            disabled={page >= totalPages}
+                                            className="bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-1 font-inter"
+                                        >
+                                            Next
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        {/* Waitlist Stats */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                <p className="text-3xl font-bold text-[#dc2626] font-inter">{waitlistStats.total}</p>
+                                <p className="text-gray-500 text-sm mt-1 font-inter">Total Signups</p>
+                            </div>
+                            {topPositions.map(([position, count]) => (
+                                <div key={position} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                    <p className="text-3xl font-bold text-[#dc2626] font-inter">{count}</p>
+                                    <p className="text-gray-500 text-sm mt-1 font-inter truncate">{position}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Waitlist Filter Bar */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+                            <select
+                                value={waitlistPosition}
+                                onChange={(e) => handleWaitlistPositionChange(e.target.value)}
+                                className="bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm font-inter focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
+                            >
+                                <option value="">All Positions</option>
+                                {POSITION_OPTIONS.map((opt) => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                            </select>
+
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by name or email..."
+                                    value={waitlistSearchInput}
+                                    onChange={(e) => setWaitlistSearchInput(e.target.value)}
+                                    className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg pl-9 pr-3 py-2 text-sm placeholder-gray-400 font-inter focus:outline-none focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626]"
+                                />
+                            </div>
+
+                            <button
+                                onClick={handleWaitlistExport}
+                                className="bg-[#dc2626] hover:bg-[#b91c1c] text-white rounded-lg px-4 py-2 text-sm font-medium font-inter flex items-center justify-center gap-2 transition-colors shrink-0"
+                            >
+                                <Download className="w-4 h-4" />
+                                Export Waitlist CSV
+                            </button>
+                        </div>
+
+                        {/* Waitlist Table */}
+                        {waitlistLoading ? (
+                            <div className="flex items-center justify-center py-20">
+                                <div className="w-8 h-8 border-2 border-[#dc2626] border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        ) : waitlistData.length === 0 ? (
+                            <div className="text-center py-20 border border-gray-200 rounded-xl bg-gray-50">
+                                <p className="text-gray-400 text-lg font-inter">No waitlist entries found</p>
+                                <p className="text-gray-400 text-sm mt-2 font-inter">
+                                    Try adjusting your filters or search query.
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                                    <table className="w-full min-w-[700px] font-inter">
+                                        <thead>
+                                            <tr className="border-b border-gray-200 bg-gray-50">
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Name
+                                                </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Email
+                                                </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Position
+                                                </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Expectation
+                                                </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Date
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {waitlistData.map((entry, index) => (
+                                                <tr
+                                                    key={entry._id}
+                                                    className={`border-b border-gray-100 ${
+                                                        index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                                                    } hover:bg-gray-50 transition-colors`}
+                                                >
+                                                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                                                        {entry.name}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-600">
+                                                        {entry.email}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span
+                                                            className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                                                POSITION_COLORS[entry.position] || POSITION_COLORS["Other"]
+                                                            }`}
+                                                        >
+                                                            {entry.position}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-500 max-w-[250px] truncate">
+                                                        {entry.expectation}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-400">
+                                                        {formatDate(entry.createdAt)}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Waitlist Pagination */}
+                                <div className="flex items-center justify-between mt-6">
+                                    <p className="text-sm text-gray-500 font-inter">
+                                        Showing {(waitlistPage - 1) * 20 + 1}
+                                        {"\u2013"}
+                                        {Math.min(waitlistPage * 20, waitlistTotal)} of {waitlistTotal} results
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setWaitlistPage((p) => Math.max(1, p - 1))}
+                                            disabled={waitlistPage <= 1}
+                                            className="bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-1 font-inter"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                            Prev
+                                        </button>
+                                        <span className="text-sm text-gray-500 px-2 font-inter">
+                                            Page {waitlistPage} of {waitlistTotalPages}
+                                        </span>
+                                        <button
+                                            onClick={() => setWaitlistPage((p) => Math.min(waitlistTotalPages, p + 1))}
+                                            disabled={waitlistPage >= waitlistTotalPages}
+                                            className="bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-1 font-inter"
+                                        >
+                                            Next
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </>
                 )}
             </main>

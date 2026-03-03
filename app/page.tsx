@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { getAllEvents } from "@/lib/events";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, ArrowRight } from "lucide-react";
 
 export default function EventsHub() {
     const events = getAllEvents();
@@ -29,6 +29,36 @@ export default function EventsHub() {
                     <p className="text-lg md:text-xl font-inter text-gray-500">
                         Discover and register for upcoming events
                     </p>
+                </motion.div>
+
+                {/* Waitlist Banner */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.15 }}
+                    className="mb-10 max-w-4xl mx-auto"
+                >
+                    <Link href="/waitlist">
+                        <div className="group relative rounded-2xl border-2 border-[#333] bg-[#0a0a0a] p-6 md:p-8 transition-all duration-300 hover:shadow-xl hover:shadow-red-900/20 hover:-translate-y-0.5 hover:border-[#dc2626]/50 cursor-pointer overflow-hidden">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-xs font-poppins font-medium uppercase tracking-wider text-[#dc2626] mb-1.5">
+                                        Coming Soon
+                                    </p>
+                                    <h3 className="text-lg md:text-xl font-dakdo font-bold text-white mb-1">
+                                        Join the BLK<span className="text-[#dc2626]">@</span>T Waitlist
+                                    </h3>
+                                    <p className="text-sm font-inter text-gray-500">
+                                        Be among the first to know when the blkat platform launches. Sign up for early access.
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm font-poppins font-semibold text-[#dc2626] group-hover:text-[#ef4444] transition-colors shrink-0">
+                                    Join Waitlist
+                                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
                 </motion.div>
 
                 {/* Event Cards Grid */}

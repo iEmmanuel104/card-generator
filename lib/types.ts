@@ -85,6 +85,16 @@ export interface SpeakerFormData extends BaseFormData {
     bio: string;
 }
 
+// Waitlist types
+export interface WaitlistEntry {
+    _id?: ObjectId;
+    name: string;
+    email: string;
+    position: string;
+    expectation: string;
+    createdAt: Date;
+}
+
 // Admin dashboard types
 export interface RegistrationFilters {
     event?: EventSlug;
