@@ -900,21 +900,23 @@ export default function ThroughHerLensRegistration() {
                                                 />
                                             </div>
 
-                                            {/* Organization */}
+                                            {/* Organization/Brand Affiliation & Designation */}
                                             <div className="space-y-2">
                                                 <Label htmlFor="org" className={`text-sm font-poppins font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                    Organization <span className="text-gray-600">(optional)</span>
+                                                    <span className="text-[#dc2626] mr-1">&#8226;</span>
+                                                    Organization/Brand Affiliation & Designation
                                                 </Label>
                                                 <Input
                                                     id="org"
                                                     value={formData.organization}
                                                     onChange={(e) => updateField("organization", e.target.value)}
+                                                    required
                                                     className={`h-12 font-inter input-red-accent transition-all duration-200 ${
                                                         isDark
                                                             ? 'bg-[#111] border-[#333] text-white placeholder-gray-500'
                                                             : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
                                                     }`}
-                                                    placeholder="Your company or organization"
+                                                    placeholder="Your company/brand affiliation and designation"
                                                 />
                                             </div>
 
@@ -933,7 +935,7 @@ export default function ThroughHerLensRegistration() {
                                                             <div className="space-y-2">
                                                                 <Label htmlFor="talk" className={`text-sm font-poppins font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                                                     <span className="text-[#dc2626] mr-1">&#8226;</span>
-                                                                    Talk Title
+                                                                    Panel Topic
                                                                 </Label>
                                                                 <Input
                                                                     id="talk"
@@ -945,7 +947,7 @@ export default function ThroughHerLensRegistration() {
                                                                             ? 'bg-[#111] border-[#333] text-white placeholder-gray-500'
                                                                             : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
                                                                     }`}
-                                                                    placeholder="Title of your talk or presentation"
+                                                                    placeholder="Topic of your panel discussion"
                                                                 />
                                                             </div>
                                                             <div className="space-y-2">
