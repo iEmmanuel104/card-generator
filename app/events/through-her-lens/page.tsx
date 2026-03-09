@@ -900,11 +900,11 @@ export default function ThroughHerLensRegistration() {
                                                 />
                                             </div>
 
-                                            {/* Organization/Brand Affiliation & Designation */}
+                                            {/* Organization/Brand Affiliation */}
                                             <div className="space-y-2">
                                                 <Label htmlFor="org" className={`text-sm font-poppins font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                                     <span className="text-[#dc2626] mr-1">&#8226;</span>
-                                                    Organization/Brand Affiliation & Designation
+                                                    Organization/Brand Affiliation 
                                                 </Label>
                                                 <Input
                                                     id="org"
@@ -916,7 +916,7 @@ export default function ThroughHerLensRegistration() {
                                                             ? 'bg-[#111] border-[#333] text-white placeholder-gray-500'
                                                             : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
                                                     }`}
-                                                    placeholder="Your company/brand affiliation and designation"
+                                                    placeholder="Your company/brand affiliation"
                                                 />
                                             </div>
 
