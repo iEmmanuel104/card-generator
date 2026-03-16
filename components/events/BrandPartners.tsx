@@ -50,104 +50,42 @@ function DiamondDivider({ maxLineWidth = 120 }: { maxLineWidth?: number }) {
 }
 
 export function BrandPartners({ partners, mediaPartners }: BrandPartnersProps) {
+    const allPartners = [...partners, ...mediaPartners];
+
     return (
-        <div className="space-y-12">
-            {/* Diamond divider */}
+        <div className="space-y-6">
             <DiamondDivider maxLineWidth={120} />
 
-            {/* Brand Partners section */}
+            {/* Single-line layout: all partners together */}
             <div>
-                <p className="text-xs tracking-[0.2em] uppercase text-gray-500 font-poppins font-light text-center mb-8">
-                    Brand Partners
+                <p className="text-xs tracking-[0.2em] uppercase text-gray-500 font-poppins font-light text-center mb-6">
+                    {mediaPartners.length > 0 ? "Our Partners" : "Brand Partners"}
                 </p>
 
-                {/* Desktop: horizontal strip */}
                 <motion.div
-                    className="hidden md:flex items-center justify-center gap-8 md:gap-12"
+                    className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 md:gap-10"
                     variants={containerVariants}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true }}
                 >
-                    {partners.map((partner) => (
+                    {allPartners.map((partner) => (
                         <motion.div
                             key={partner.name}
                             variants={itemVariants}
-                            className="relative h-12 md:h-16 w-20 md:w-28 opacity-60 hover:opacity-100 hover:scale-[1.08] hover:brightness-[1.2] transition-all duration-300 ease-out"
+                            className="relative h-10 w-16 sm:h-12 sm:w-20 md:h-14 md:w-24 opacity-60 hover:opacity-100 hover:scale-[1.08] hover:brightness-[1.2] transition-all duration-300 ease-out flex-shrink-0"
                         >
                             <Image
                                 src={partner.logoPath}
                                 alt={partner.name}
                                 fill
                                 className="object-contain"
-                                sizes="(max-width: 768px) 80px, 112px"
+                                sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
                             />
                         </motion.div>
                     ))}
                 </motion.div>
-
-                {/* Mobile: 2-column grid */}
-                <motion.div
-                    className="grid grid-cols-2 gap-6 md:hidden"
-                    variants={containerVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                >
-                    {partners.map((partner) => (
-                        <motion.div
-                            key={partner.name}
-                            variants={itemVariants}
-                            className="flex items-center justify-center"
-                        >
-                            <div className="relative h-14 w-full opacity-60 hover:opacity-100 hover:scale-[1.08] hover:brightness-[1.2] transition-all duration-300 ease-out">
-                                <Image
-                                    src={partner.logoPath}
-                                    alt={partner.name}
-                                    fill
-                                    className="object-contain"
-                                    sizes="50vw"
-                                />
-                            </div>
-                        </motion.div>
-                    ))}
-                </motion.div>
             </div>
-
-            {/* Media Partners section */}
-            {mediaPartners.length > 0 && (
-                <div>
-                    <DiamondDivider maxLineWidth={80} />
-
-                    <p className="text-xs tracking-[0.2em] uppercase text-gray-500 font-poppins font-light text-center mb-8">
-                        Media Partner
-                    </p>
-
-                    <motion.div
-                        className="flex items-center justify-center"
-                        variants={containerVariants}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true }}
-                    >
-                        {mediaPartners.map((partner) => (
-                            <motion.div
-                                key={partner.name}
-                                variants={itemVariants}
-                                className="relative h-12 md:h-16 w-20 md:w-28 opacity-60 hover:opacity-100 hover:scale-[1.08] hover:brightness-[1.2] transition-all duration-300 ease-out"
-                            >
-                                <Image
-                                    src={partner.logoPath}
-                                    alt={partner.name}
-                                    fill
-                                    className="object-contain"
-                                    sizes="112px"
-                                />
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                </div>
-            )}
         </div>
     );
 }

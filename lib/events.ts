@@ -49,8 +49,8 @@ const events: Record<EventSlug, EventConfig> = {
             { name: 'Amstel Malta', logoPath: '/partners/through-her-lens/amstel-malta.png' },
             { name: 'Bank of Industry', logoPath: '/partners/through-her-lens/bank-of-industry.png' },
             { name: 'NCAC', logoPath: '/partners/through-her-lens/ncac.jpeg' },
-            { name: 'Nigerian Breweries', logoPath: '/partners/through-her-lens/nigerian-breweries.jpg' },
-            { name: 'UN Women', logoPath: '/partners/through-her-lens/un-women.png' },
+            // { name: 'Nigerian Breweries', logoPath: '/partners/through-her-lens/nigerian-breweries.jpg' },
+            // { name: 'UN Women', logoPath: '/partners/through-her-lens/un-women.png' },
             { name: 'Unstereotype Alliance', logoPath: '/partners/through-her-lens/unstereotype-alliance.jpg' },
         ],
         mediaPartners: [
