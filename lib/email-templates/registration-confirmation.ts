@@ -208,13 +208,13 @@ export function getRegistrationEmailHtml(params: RegistrationEmailParams): strin
                                 <tr>
                                     <td align="center">
                                         <!--[if mso]>
-                                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://blkat.io/events/through-her-lens" style="height:48px;v-text-anchor:middle;width:100%;" arcsize="13%" fillcolor="#dc2626" strokecolor="#dc2626" strokeweight="0">
+                                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://blkat.io/through-her-lens" style="height:48px;v-text-anchor:middle;width:100%;" arcsize="13%" fillcolor="#dc2626" strokecolor="#dc2626" strokeweight="0">
                                             <w:anchorlock/>
                                             <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">View Event Details</center>
                                         </v:roundrect>
                                         <![endif]-->
                                         <!--[if !mso]><!-->
-                                        <a href="https://blkat.io/events/through-her-lens" target="_blank" style="display: block; width: 100%; background-color: #dc2626; color: #ffffff; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; padding: 14px 0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; mso-padding-alt: 0; mso-text-raise: 0;">View Event Details</a>
+                                        <a href="https://blkat.io/through-her-lens" target="_blank" style="display: block; width: 100%; background-color: #dc2626; color: #ffffff; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; padding: 14px 0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; mso-padding-alt: 0; mso-text-raise: 0;">View Event Details</a>
                                         <!--<![endif]-->
                                     </td>
                                 </tr>

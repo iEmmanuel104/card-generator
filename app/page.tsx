@@ -77,7 +77,7 @@ export default function EventsHub() {
                                     transition={{ duration: 0.5, delay: 0.2 + index * 0.15 }}
                                     className="md:order-first"
                                 >
-                                    <Link href={`/events/${event.slug}`}>
+                                    <Link href={`/${event.slug}`}>
                                         <div className="group relative rounded-2xl border-2 border-[#333] p-8 transition-all duration-300 hover:shadow-xl hover:shadow-red-900/20 hover:-translate-y-1 hover:border-[#dc2626]/50 cursor-pointer h-full flex flex-col overflow-hidden bg-[#0a0a0a]">
                                             {/* Background flyer image with overlay */}
                                             <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity duration-500">
@@ -166,7 +166,7 @@ export default function EventsHub() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: 0.2 + index * 0.15 }}
                             >
-                                <Link href={`/events/${event.slug}`}>
+                                <Link href={`/${event.slug}`}>
                                     <div className="group rounded-2xl border-2 p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer h-full flex flex-col bg-white border-gray-200 hover:border-[#ff0000]/50 hover:shadow-red-100">
                                         <h2 className="text-2xl md:text-3xl font-dakdo font-bold mb-3 text-gray-900">
                                             {event.name}
