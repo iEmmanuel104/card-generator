@@ -30,7 +30,7 @@ const events: Record<EventSlug, EventConfig> = {
         name: 'Through Her Lens',
         tagline: 'Celebrating the Female Gender and Gender Equality in the Creative Space',
         date: 'March 30, 2026',
-        time: '9:00 AM - 3:00 PM',
+        time: '9:00 AM - 4:00 PM',
         venue: 'Alliance Francaise de Lagos',
         theme: 'dark',
         colors: {
