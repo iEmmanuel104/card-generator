@@ -34,22 +34,21 @@ export function useCloudinaryUpload(options?: CloudinaryUploadOptions): UseCloud
         setIsUploading(true);
         setError(null);
 
-        if (!process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || !process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) {
-            throw new Error('Cloudinary configuration is missing');
-        }
-
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+            // Convert file to base64 data URL
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
 
-            const response = await fetch(
-                `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-                {
-                    method: 'POST',
-                    body: formData,
-                }
-            );
+            // Upload via server-side API route (has Cloudinary credentials)
+            const response = await fetch('/api/upload-social-card', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: dataUrl }),
+            });
 
             const data = await response.json();
 
@@ -58,9 +57,9 @@ export function useCloudinaryUpload(options?: CloudinaryUploadOptions): UseCloud
             }
 
             // Apply transformations to the URL
-            const baseUrl = data.secure_url.split('/upload/')[0] + '/upload/';
+            const baseUrl = data.url.split('/upload/')[0] + '/upload/';
             const transformations = `c_${opts.crop},g_${opts.gravity},w_${opts.width},h_${opts.height},q_${opts.quality}/`;
-            const filename = data.secure_url.split('/upload/')[1];
+            const filename = data.url.split('/upload/')[1];
             return baseUrl + transformations + filename;
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Failed to upload image';

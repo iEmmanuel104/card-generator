@@ -49,258 +49,201 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
     return lines;
 }
 
-function drawBackground(ctx: CanvasRenderingContext2D, W: number, H: number, isLight: boolean) {
-    if (isLight) {
-        ctx.fillStyle = "#f8f5f0";
-        ctx.fillRect(0, 0, W, H);
-        const grad = ctx.createRadialGradient(W / 2, H / 3, 0, W / 2, H / 3, H * 0.8);
-        grad.addColorStop(0, "#f8f5f0");
-        grad.addColorStop(1, "#efe8df");
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, W, H);
-    } else {
-        ctx.fillStyle = "#050505";
-        ctx.fillRect(0, 0, W, H);
-        const grad = ctx.createRadialGradient(W / 2, H / 3, 0, W / 2, H / 3, H * 0.8);
-        grad.addColorStop(0, "#1a0808");
-        grad.addColorStop(0.5, "#0a0303");
-        grad.addColorStop(1, "#050505");
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, W, H);
-
-        const grad2 = ctx.createRadialGradient(0, H, 0, 0, H, H * 0.6);
-        grad2.addColorStop(0, "rgba(26,5,5,0.3)");
-        grad2.addColorStop(1, "transparent");
-        ctx.fillStyle = grad2;
-        ctx.fillRect(0, 0, W, H);
-    }
+function drawPSDBackground(ctx: CanvasRenderingContext2D, W: number, H: number) {
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#0e0e0e');
+    grad.addColorStop(0.5, '#0a0a0a');
+    grad.addColorStop(1, '#050505');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
 }
 
-function drawDecorativeLines(ctx: CanvasRenderingContext2D, W: number, H: number, isLight: boolean) {
+function drawWavePattern(
+    ctx: CanvasRenderingContext2D,
+    W: number,
+    patternImg: HTMLImageElement,
+) {
     ctx.save();
-    ctx.strokeStyle = isLight ? "rgba(220,38,38,0.1)" : "rgba(220,38,38,0.15)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, 80);
-    ctx.lineTo(W * 0.4, H * 0.35);
-    ctx.stroke();
-
-    ctx.strokeStyle = isLight ? "rgba(220,38,38,0.05)" : "rgba(220,38,38,0.08)";
-    ctx.beginPath();
-    ctx.moveTo(W * 0.7, 0);
-    ctx.lineTo(W, H * 0.2);
-    ctx.stroke();
+    ctx.globalAlpha = 0.6;
+    const drawW = W * 2.83;
+    const drawH = patternImg.height * (drawW / patternImg.width);
+    const drawX = (W - drawW) / 2;
+    const drawY = 380 - drawH / 2;
+    ctx.drawImage(patternImg, drawX, drawY, drawW, drawH);
     ctx.restore();
 }
 
-function drawLogo(ctx: CanvasRenderingContext2D, W: number, isLight: boolean) {
-    ctx.font = "700 42px Poppins";
-    const blkW = ctx.measureText("BLK").width;
-    const atW = ctx.measureText("@").width;
-    const startX = (W - blkW - atW) / 2;
-
-    ctx.textAlign = "left";
-    ctx.fillStyle = isLight ? "#1a1a1a" : "#FFFFFF";
-    ctx.fillText("BLK", startX, 75);
-    ctx.fillStyle = "#dc2626";
-    ctx.fillText("@", startX + blkW, 75);
-    ctx.textAlign = "center";
-}
-
-function drawPresents(ctx: CanvasRenderingContext2D, W: number, isLight: boolean) {
-    ctx.fillStyle = isLight ? "#999999" : "#888888";
-    ctx.font = "300 14px Poppins";
-    ctx.textAlign = "center";
-    ctx.letterSpacing = "4px";
-    ctx.fillText("PRESENTS", W / 2, 115);
-    ctx.letterSpacing = "0px";
-}
-
-function drawPhoto(
+function drawPSDPhoto(
     ctx: CanvasRenderingContext2D,
     W: number,
+    H: number,
     userImg: HTMLImageElement | null,
+    waveImg: HTMLImageElement,
     radius: number,
-    centerY: number,
-    isLight: boolean,
+    photoCenterY: number,
+    arcCenterY: number,
 ) {
-    if (!userImg) return;
-    const photoCenterX = W / 2;
+    const photoCX = W / 2;
+    const arcCX = 540;
+    const PI = Math.PI;
 
-    // Outer glow ring
+    // Helper to draw both arc paths
+    const drawArcPaths = (offCtx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) => {
+        // Outer thick arc — gap at upper-left (~10:30 to 12:30 clock)
+        offCtx.beginPath();
+        offCtx.arc(arcCX, arcCenterY, radius + 66, PI * 1.583, PI * 1.25, false);
+        offCtx.lineWidth = 27;
+        offCtx.lineCap = 'round';
+        offCtx.stroke();
+        // Inner thinner arc — gap at lower-right (~4:30 to 6:30 clock)
+        offCtx.beginPath();
+        offCtx.arc(arcCX, arcCenterY, radius + 16, PI * 0.583, PI * 0.25, false);
+        offCtx.lineWidth = 15;
+        offCtx.lineCap = 'round';
+        offCtx.stroke();
+    };
+
+    // Draw base red arcs (slightly darker base for wave texture contrast)
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(photoCenterX, centerY, radius + 18, 0, Math.PI * 2);
-    ctx.strokeStyle = "#dc2626";
-    ctx.lineWidth = 1;
-    ctx.shadowColor = "#dc2626";
-    ctx.shadowBlur = isLight ? 15 : 25;
-    ctx.globalAlpha = 0.3;
-    ctx.stroke();
+    ctx.strokeStyle = '#991b1b';
+    drawArcPaths(ctx);
     ctx.restore();
 
-    // Middle glow ring
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(photoCenterX, centerY, radius + 10, 0, Math.PI * 2);
-    ctx.strokeStyle = "#dc2626";
-    ctx.lineWidth = 2;
-    ctx.shadowColor = "#dc2626";
-    ctx.shadowBlur = isLight ? 10 : 15;
-    ctx.globalAlpha = 0.5;
-    ctx.stroke();
-    ctx.restore();
+    // Wave texture on rings: compose on offscreen canvas
+    try {
+        const offscreen = new OffscreenCanvas(W, H);
+        const offCtx = offscreen.getContext('2d');
+        if (offCtx) {
+            // Draw arc shapes in white on offscreen
+            offCtx.strokeStyle = 'white';
+            offCtx.lineCap = 'round';
+            drawArcPaths(offCtx);
 
-    // Inner solid ring
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(photoCenterX, centerY, radius + 4, 0, Math.PI * 2);
-    ctx.strokeStyle = "#dc2626";
-    ctx.lineWidth = 3;
-    ctx.shadowColor = "#dc2626";
-    ctx.shadowBlur = 8;
-    ctx.stroke();
-    ctx.restore();
+            // Intersect with wave pattern using source-in
+            offCtx.globalCompositeOperation = 'source-in';
+            const drawW = W * 2.83;
+            const drawH = waveImg.height * (drawW / waveImg.width);
+            const drawX = (W - drawW) / 2;
+            const drawY = 380 - drawH / 2;
+            offCtx.drawImage(waveImg, drawX, drawY, drawW, drawH);
 
-    // Clip and draw photo
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(photoCenterX, centerY, radius, 0, Math.PI * 2);
-    ctx.clip();
+            // Tint the wave texture red: multiply with red
+            offCtx.globalCompositeOperation = 'source-in';
+            offCtx.fillStyle = '#dc2626';
+            offCtx.fillRect(0, 0, W, H);
 
-    const photoSize = radius * 2;
-    const imgAspect = userImg.width / userImg.height;
-    let drawW, drawH;
-    if (imgAspect > 1) {
-        drawH = photoSize;
-        drawW = photoSize * imgAspect;
-    } else {
-        drawW = photoSize;
-        drawH = photoSize / imgAspect;
+            // Draw textured rings onto main canvas (brighter red wave lines on top of darker base)
+            ctx.save();
+            ctx.globalAlpha = 0.85;
+            ctx.globalCompositeOperation = 'screen';
+            ctx.drawImage(offscreen, 0, 0);
+            ctx.restore();
+        }
+    } catch {
+        // Fallback: draw solid arcs if OffscreenCanvas not available
+        ctx.save();
+        ctx.strokeStyle = '#dc2626';
+        drawArcPaths(ctx);
+        ctx.restore();
     }
-    ctx.drawImage(userImg, photoCenterX - drawW / 2, centerY - drawH / 2, drawW, drawH);
+
+    // Thin dark border ring around photo
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(photoCX, photoCenterY, radius + 3, 0, PI * 2);
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.restore();
+
+    // Clip and draw B&W photo
+    if (userImg) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(photoCX, photoCenterY, radius, 0, PI * 2);
+        ctx.clip();
+        ctx.filter = 'grayscale(100%)';
+
+        const photoSize = radius * 2;
+        const imgAspect = userImg.width / userImg.height;
+        let drawW: number, drawH: number;
+        if (imgAspect > 1) {
+            drawH = photoSize;
+            drawW = photoSize * imgAspect;
+        } else {
+            drawW = photoSize;
+            drawH = photoSize / imgAspect;
+        }
+        ctx.drawImage(userImg, photoCX - drawW / 2, photoCenterY - drawH / 2, drawW, drawH);
+        ctx.restore();
+    }
+}
+
+function drawBottomGradient(ctx: CanvasRenderingContext2D, W: number, H: number) {
+    const gradStart = H * 0.78;
+    const grad = ctx.createLinearGradient(0, gradStart, 0, H);
+    grad.addColorStop(0, 'rgba(5,5,5,0)');
+    grad.addColorStop(0.15, 'rgba(5,5,5,0.45)');
+    grad.addColorStop(0.35, 'rgba(5,5,5,0.8)');
+    grad.addColorStop(0.6, 'rgba(5,5,5,0.95)');
+    grad.addColorStop(1, 'rgba(5,5,5,0.99)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, gradStart, W, H - gradStart);
+}
+
+function drawLogoBlock(ctx: CanvasRenderingContext2D, logoImg: HTMLImageElement) {
+    const targetW = 268;
+    const targetH = logoImg.height * (targetW / logoImg.width);
+    ctx.drawImage(logoImg, 76, 72, targetW, targetH);
+}
+
+function drawDateVenue(ctx: CanvasRenderingContext2D, W: number) {
+    ctx.save();
+    ctx.textAlign = 'right';
+    const rightEdge = W - 66;
+
+    ctx.fillStyle = '#dc2626';
+    ctx.font = '700 78px "Playfair Display"';
+    ctx.fillText('March 30', rightEdge, 192);
+
+    ctx.fillStyle = '#888888';
+    ctx.font = 'italic 700 37px "Playfair Display"';
+    ctx.fillText('Alliance Francaise de Lagos.', rightEdge, 242);
+
     ctx.restore();
 }
 
-function drawName(
+function drawNameAndRole(
     ctx: CanvasRenderingContext2D,
     W: number,
+    H: number,
     name: string,
-    nameY: number,
-    maxSize: number,
-    minSize: number,
-    isLight: boolean,
+    roleText: string,
 ) {
-    ctx.textAlign = "center";
+    ctx.textAlign = 'center';
+
     const displayName = name.toUpperCase();
-    let fontSize = maxSize;
+    let fontSize = 80;
     do {
-        ctx.font = `700 ${fontSize}px Poppins`;
+        ctx.font = `700 ${fontSize}px "Poppins"`;
         fontSize--;
-    } while (ctx.measureText(displayName).width > W * 0.85 && fontSize > minSize);
+    } while (ctx.measureText(displayName).width > W * 0.82 && fontSize > 24);
 
-    ctx.shadowColor = "rgba(220,38,38,0.3)";
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = isLight ? "#1a1a1a" : "#FFFFFF";
-    ctx.fillText(displayName, W / 2, nameY);
-    ctx.shadowBlur = 0;
-}
+    ctx.letterSpacing = '0.08em';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(displayName, W / 2, 1230);
+    ctx.letterSpacing = '0px';
 
-function drawBadge(ctx: CanvasRenderingContext2D, W: number, text: string, badgeY: number) {
-    ctx.font = "700 14px Poppins";
-    ctx.textAlign = "center";
-    const badgeW = ctx.measureText(text).width + 50;
-    const badgeH = 34;
-
-    ctx.shadowColor = "rgba(220,38,38,0.3)";
-    ctx.shadowBlur = 12;
-    ctx.fillStyle = "#dc2626";
-    ctx.beginPath();
-    ctx.roundRect((W - badgeW) / 2, badgeY - badgeH / 2 - 5, badgeW, badgeH, 17);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillText(text, W / 2, badgeY + 1);
-}
-
-function drawRedLine(ctx: CanvasRenderingContext2D, W: number, y: number) {
-    ctx.strokeStyle = "#dc2626";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(W / 2 - 120, y);
-    ctx.lineTo(W / 2 + 120, y);
-    ctx.stroke();
-}
-
-function drawEventTitle(
-    ctx: CanvasRenderingContext2D,
-    W: number,
-    isLight: boolean,
-    sizes: { throughSize: number; herSize: number; lensSize: number; throughY: number; herY: number; lensY: number },
-) {
-    ctx.textAlign = "center";
-
-    // "THROUGH"
-    ctx.fillStyle = isLight ? "#333333" : "#FFFFFF";
-    ctx.font = `300 ${sizes.throughSize}px Poppins`;
-    ctx.letterSpacing = "6px";
-    ctx.fillText("THROUGH", W / 2, sizes.throughY);
-    ctx.letterSpacing = "0px";
-
-    // "Her"
-    ctx.fillStyle = "#dc2626";
-    ctx.font = `italic 700 ${sizes.herSize}px Playfair Display`;
-    const herWidth = ctx.measureText("Her").width;
-    ctx.fillText("Her", W / 2, sizes.herY);
-
-    // Decorative dashes flanking "Her"
-    ctx.strokeStyle = "rgba(220,38,38,0.4)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(W / 2 - herWidth / 2 - 30, sizes.herY - 12);
-    ctx.lineTo(W / 2 - herWidth / 2 - 8, sizes.herY - 12);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(W / 2 + herWidth / 2 + 8, sizes.herY - 12);
-    ctx.lineTo(W / 2 + herWidth / 2 + 30, sizes.herY - 12);
-    ctx.stroke();
-
-    // "Lens"
-    ctx.fillStyle = isLight ? "#333333" : "#FFFFFF";
-    ctx.font = `italic 400 ${sizes.lensSize}px Playfair Display`;
-    ctx.fillText("Lens", W / 2, sizes.lensY);
-}
-
-function drawThinSeparator(ctx: CanvasRenderingContext2D, W: number, y: number, isLight: boolean) {
-    ctx.strokeStyle = isLight ? "rgba(0,0,0,0.15)" : "rgba(136,136,136,0.3)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(W / 2 - 200, y);
-    ctx.lineTo(W / 2 + 200, y);
-    ctx.stroke();
-}
-
-function drawEventDetails(
-    ctx: CanvasRenderingContext2D,
-    W: number,
-    isLight: boolean,
-    dateY: number,
-    venueY: number,
-    fontSize: number,
-) {
-    ctx.textAlign = "center";
-    ctx.fillStyle = isLight ? "#666666" : "#888888";
-    ctx.font = `400 ${fontSize}px Inter`;
-    ctx.fillText(`${eventConfig.date}  |  ${eventConfig.time}`, W / 2, dateY);
-    ctx.fillText(eventConfig.venue, W / 2, venueY);
-}
-
-function drawWatermark(ctx: CanvasRenderingContext2D, W: number, y: number, isLight: boolean) {
-    ctx.textAlign = "center";
-    ctx.fillStyle = isLight ? "rgba(0,0,0,0.15)" : "rgba(136,136,136,0.2)";
-    ctx.font = "300 10px Inter";
-    ctx.fillText("blkat.io", W / 2, y);
+    if (roleText) {
+        ctx.font = 'italic 700 37px "Playfair Display"';
+        ctx.fillStyle = '#999999';
+        const roleLines = wrapText(ctx, roleText, W * 0.75);
+        let roleY = 1300;
+        for (const line of roleLines) {
+            ctx.fillText(line, W / 2, roleY);
+            roleY += 46;
+        }
+    }
 }
 
 interface ThroughHerLensRegistrationProps {
@@ -330,9 +273,9 @@ export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegis
     // Profile photos — 500x500 face-crop is correct
     const { uploadFile: uploadProfilePhoto } = useCloudinaryUpload({ width: 500, height: 500 });
 
-    // Social cards — preserve full 1080x1080 resolution
+    // Social cards — preserve full 1080x1485 resolution
     const { uploadFile: uploadSocialCard } = useCloudinaryUpload({
-        width: 1080, height: 1080, crop: 'limit', gravity: 'center', quality: 100,
+        width: 1080, height: 1485, crop: 'limit', gravity: 'center', quality: 100,
     });
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -421,94 +364,52 @@ export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegis
         if (!ctx) throw new Error("Could not get canvas context");
 
         const W = 1080;
-        const H = 1080;
+        const H = 1485;
         canvas.width = W;
         canvas.height = H;
 
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
 
-        const isLight = pageTheme === 'light';
-
         await document.fonts.ready;
 
-        const userImg = formData.photo ? await loadImage(formData.photo) : null;
+        // Load all assets in parallel
+        const [userImg, wavePatternImg, logoImg] = await Promise.all([
+            formData.photo ? loadImage(formData.photo) : Promise.resolve(null),
+            loadImage('/images/thl-wave-pattern.png'),
+            loadImage('/images/thl-logo.png'),
+        ]);
 
-        // Shared elements
-        drawBackground(ctx, W, H, isLight);
-        drawDecorativeLines(ctx, W, H, isLight);
-        drawLogo(ctx, W, isLight);
-        drawPresents(ctx, W, isLight);
+        const photoRadius = 290;
+        const photoCenterY = 658;
+        const arcCenterY = 694;
 
-        // Role-specific layout
-        if (role === 'speaker') {
-            // Speaker layout — slightly compact to fit talk title
-            drawPhoto(ctx, W, userImg, 160, 310, isLight);
-            drawName(ctx, W, formData.name, 525, 44, 22, isLight);
-            drawBadge(ctx, W, "SPEAKER", 565);
-            drawRedLine(ctx, W, 600);
+        // 1. Dark background
+        drawPSDBackground(ctx, W, H);
 
-            // "SPEAKING ON"
-            ctx.textAlign = "center";
-            ctx.fillStyle = isLight ? "#666666" : "#888888";
-            ctx.font = "300 13px Poppins";
-            ctx.letterSpacing = "3px";
-            ctx.fillText("SPEAKING ON", W / 2, 632);
-            ctx.letterSpacing = "0px";
+        // 2. Wave pattern behind photo
+        drawWavePattern(ctx, W, wavePatternImg);
 
-            // Talk title (word-wrapped, max 2 lines)
-            ctx.font = "italic 500 18px Poppins";
-            ctx.fillStyle = "#dc2626";
-            const titleLines = wrapText(ctx, formData.talkTitle || "", W * 0.75);
-            let titleY = 660;
-            for (const line of titleLines) {
-                ctx.fillText(line, W / 2, titleY);
-                titleY += 26;
-            }
+        // 3. B&W photo with wave-textured red arc rings
+        drawPSDPhoto(ctx, W, H, userImg, wavePatternImg, photoRadius, photoCenterY, arcCenterY);
 
-            // Dynamic Y positioning from here
-            let dynY = titleY + 10;
+        // 4. Bottom gradient fade
+        drawBottomGradient(ctx, W, H);
 
-            // "AT"
-            ctx.fillStyle = isLight ? "#666666" : "#888888";
-            ctx.font = "300 13px Poppins";
-            ctx.letterSpacing = "3px";
-            ctx.fillText("AT", W / 2, dynY);
-            ctx.letterSpacing = "0px";
+        // 5. Logo block (top-left)
+        drawLogoBlock(ctx, logoImg);
 
-            drawEventTitle(ctx, W, isLight, {
-                throughSize: 18, herSize: 52, lensSize: 36,
-                throughY: dynY + 30, herY: dynY + 78, lensY: dynY + 118,
-            });
-            drawThinSeparator(ctx, W, dynY + 145, isLight);
-            drawEventDetails(ctx, W, isLight, dynY + 173, dynY + 195, 15);
-            drawWatermark(ctx, W, dynY + 230, isLight);
-        } else {
-            // Attendee layout
-            drawPhoto(ctx, W, userImg, 170, 320, isLight);
-            drawName(ctx, W, formData.name, 550, 48, 24, isLight);
-            drawBadge(ctx, W, "ATTENDEE", 590);
-            drawRedLine(ctx, W, 630);
+        // 6. Date + venue (top-right)
+        drawDateVenue(ctx, W);
 
-            // "I'LL BE ATTENDING"
-            ctx.textAlign = "center";
-            ctx.fillStyle = isLight ? "#666666" : "#888888";
-            ctx.font = "300 16px Poppins";
-            ctx.letterSpacing = "3px";
-            ctx.fillText("I'LL BE ATTENDING", W / 2, 665);
-            ctx.letterSpacing = "0px";
-
-            drawEventTitle(ctx, W, isLight, {
-                throughSize: 20, herSize: 64, lensSize: 44,
-                throughY: 710, herY: 765, lensY: 815,
-            });
-            drawThinSeparator(ctx, W, 845, isLight);
-            drawEventDetails(ctx, W, isLight, 875, 900, 16);
-            drawWatermark(ctx, W, 940, isLight);
-        }
+        // 7. Name + role (bottom)
+        const roleText = role === 'speaker'
+            ? (formData.talkTitle || formData.organization || '')
+            : (formData.organization || 'Registered Attendee');
+        drawNameAndRole(ctx, W, H, formData.name, roleText);
 
         return canvas.toDataURL("image/png");
-    }, [formData.photo, formData.name, formData.talkTitle, role, pageTheme]);
+    }, [formData.photo, formData.name, formData.talkTitle, formData.organization, role]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -862,7 +763,7 @@ export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegis
                                             <div className="space-y-2">
                                                 <Label htmlFor="org" className={`text-sm font-poppins font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                                                     <span className="text-[#dc2626] mr-1">&#8226;</span>
-                                                    Organization/Brand Affiliation 
+                                                    Organization/Brand Affiliation
                                                 </Label>
                                                 <Input
                                                     id="org"

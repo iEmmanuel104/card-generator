@@ -42,7 +42,7 @@ const events: Record<EventSlug, EventConfig> = {
         cardTemplate: {
             path: '/images/thl-card-template.jpg',
             width: 1080,
-            height: 1350,
+            height: 1485,
         },
         speakersEnabled: true,
         partners: [
