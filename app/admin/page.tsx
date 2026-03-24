@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Download, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
+import { Search, Download, ChevronLeft, ChevronRight, ArrowLeft, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface Registration {
     _id: string;
@@ -109,6 +110,10 @@ export default function AdminPage() {
     const [waitlistSearchInput, setWaitlistSearchInput] = useState("");
     const [waitlistSearchQuery, setWaitlistSearchQuery] = useState("");
     const [waitlistLoading, setWaitlistLoading] = useState(true);
+
+    // Detail modal state
+    const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
+    const [selectedWaitlistEntry, setSelectedWaitlistEntry] = useState<WaitlistEntry | null>(null);
 
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const waitlistDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -240,6 +245,23 @@ export default function AdminPage() {
             case "this-is-lagos": return "This Is Lagos";
             case "through-her-lens": return "Through Her Lens";
             default: return slug;
+        }
+    };
+
+    const handleCardDownload = async (socialCardUrl: string, name: string) => {
+        try {
+            const response = await fetch(socialCardUrl);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${name.replace(/\s+/g, "-").toLowerCase()}-social-card.png`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error("Download error:", error);
         }
     };
 
@@ -406,6 +428,9 @@ export default function AdminPage() {
                                                 <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
                                                     Date
                                                 </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Actions
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -453,6 +478,15 @@ export default function AdminPage() {
                                                     </td>
                                                     <td className="px-4 py-3 text-sm text-gray-400">
                                                         {formatDate(registration.createdAt)}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <button
+                                                            onClick={() => setSelectedRegistration(registration)}
+                                                            className="p-1.5 rounded-lg text-gray-400 hover:text-[#dc2626] hover:bg-red-50 transition-colors"
+                                                            title="View details"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -574,6 +608,9 @@ export default function AdminPage() {
                                                 <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
                                                     Date
                                                 </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Actions
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -604,6 +641,15 @@ export default function AdminPage() {
                                                     </td>
                                                     <td className="px-4 py-3 text-sm text-gray-400">
                                                         {formatDate(entry.createdAt)}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <button
+                                                            onClick={() => setSelectedWaitlistEntry(entry)}
+                                                            className="p-1.5 rounded-lg text-gray-400 hover:text-[#dc2626] hover:bg-red-50 transition-colors"
+                                                            title="View details"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -645,6 +691,166 @@ export default function AdminPage() {
                     </>
                 )}
             </main>
+
+            {/* Registration Detail Modal */}
+            <Dialog open={!!selectedRegistration} onOpenChange={() => setSelectedRegistration(null)}>
+                <DialogContent className="w-[90vw] max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-gray-200">
+                    {selectedRegistration && (
+                        <>
+                            <DialogHeader>
+                                <div className="flex items-center gap-4">
+                                    {selectedRegistration.profilePhoto ? (
+                                        <img
+                                            src={selectedRegistration.profilePhoto}
+                                            alt={selectedRegistration.name}
+                                            className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                                        />
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-xl font-bold font-inter">
+                                            {selectedRegistration.name.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                    <div>
+                                        <DialogTitle className="text-xl font-bold text-gray-900 font-inter">
+                                            {selectedRegistration.name}
+                                        </DialogTitle>
+                                        <DialogDescription className="flex items-center gap-2 mt-1">
+                                            <span
+                                                className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+                                                    selectedRegistration.role === "speaker"
+                                                        ? "bg-[#dc2626]/10 text-[#dc2626]"
+                                                        : "bg-blue-50 text-blue-600"
+                                                }`}
+                                            >
+                                                {selectedRegistration.role}
+                                            </span>
+                                            <span className="text-sm text-gray-500 font-inter">
+                                                {formatEventName(selectedRegistration.event)}
+                                            </span>
+                                        </DialogDescription>
+                                    </div>
+                                </div>
+                            </DialogHeader>
+
+                            <div className="space-y-5 mt-4">
+                                {/* Contact Info */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Email</p>
+                                        <p className="text-sm text-gray-900 font-inter">{selectedRegistration.email}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Phone</p>
+                                        <p className="text-sm text-gray-900 font-inter">{selectedRegistration.phoneNumber}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Organization</p>
+                                        <p className="text-sm text-gray-900 font-inter">{selectedRegistration.organization || "—"}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Registered</p>
+                                        <p className="text-sm text-gray-900 font-inter">{formatDate(selectedRegistration.createdAt)}</p>
+                                    </div>
+                                </div>
+
+                                {/* Speaker Info */}
+                                {selectedRegistration.role === "speaker" && (
+                                    <div className="border-t border-gray-100 pt-4 space-y-3">
+                                        <div>
+                                            <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Panel Topic</p>
+                                            <p className="text-sm text-gray-900 font-inter">{selectedRegistration.talkTitle || "—"}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Bio</p>
+                                            <p className="text-sm text-gray-700 font-inter whitespace-pre-wrap">{selectedRegistration.bio || "—"}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Email Status */}
+                                <div className="flex items-center gap-2 border-t border-gray-100 pt-4">
+                                    <span
+                                        className={`w-2 h-2 rounded-full ${
+                                            selectedRegistration.emailSent ? "bg-green-500" : "bg-red-400"
+                                        }`}
+                                    />
+                                    <span className="text-sm text-gray-500 font-inter">
+                                        {selectedRegistration.emailSent ? "Confirmation email sent" : "Email not sent"}
+                                    </span>
+                                </div>
+
+                                {/* Social Card */}
+                                {selectedRegistration.socialCard && (
+                                    <div className="border-t border-gray-100 pt-4">
+                                        <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-3">Social Card</p>
+                                        <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                                            <img
+                                                src={selectedRegistration.socialCard}
+                                                alt={`${selectedRegistration.name}'s social card`}
+                                                className="w-full h-auto"
+                                                loading="lazy"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => handleCardDownload(selectedRegistration.socialCard, selectedRegistration.name)}
+                                            className="mt-3 w-full bg-[#dc2626] hover:bg-[#b91c1c] text-white rounded-lg px-4 py-2.5 text-sm font-medium font-inter flex items-center justify-center gap-2 transition-colors"
+                                        >
+                                            <Download className="w-4 h-4" />
+                                            Download Social Card
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Waitlist Detail Modal */}
+            <Dialog open={!!selectedWaitlistEntry} onOpenChange={() => setSelectedWaitlistEntry(null)}>
+                <DialogContent className="w-[90vw] max-w-lg max-h-[90vh] overflow-y-auto bg-white border-gray-200">
+                    {selectedWaitlistEntry && (
+                        <>
+                            <DialogHeader>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-lg font-bold font-inter">
+                                        {selectedWaitlistEntry.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <DialogTitle className="text-xl font-bold text-gray-900 font-inter">
+                                            {selectedWaitlistEntry.name}
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            <span
+                                                className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium mt-1 ${
+                                                    POSITION_COLORS[selectedWaitlistEntry.position] || POSITION_COLORS["Other"]
+                                                }`}
+                                            >
+                                                {selectedWaitlistEntry.position}
+                                            </span>
+                                        </DialogDescription>
+                                    </div>
+                                </div>
+                            </DialogHeader>
+
+                            <div className="space-y-4 mt-4">
+                                <div>
+                                    <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Email</p>
+                                    <p className="text-sm text-gray-900 font-inter">{selectedWaitlistEntry.email}</p>
+                                </div>
+                                <div className="border-t border-gray-100 pt-4">
+                                    <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Expectation</p>
+                                    <p className="text-sm text-gray-700 font-inter whitespace-pre-wrap">{selectedWaitlistEntry.expectation}</p>
+                                </div>
+                                <div className="border-t border-gray-100 pt-4">
+                                    <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Signed Up</p>
+                                    <p className="text-sm text-gray-900 font-inter">{formatDate(selectedWaitlistEntry.createdAt)}</p>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
