@@ -42,7 +42,7 @@ export interface BaseRegistration {
     role: RegistrationRole;
     name: string;
     email: string;
-    phoneNumber: string;
+    phoneNumber?: string;
     organization?: string;
     profilePhoto: string;
     socialCard: string;

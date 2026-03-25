@@ -425,7 +425,7 @@ export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegis
             const registrationData = {
                 name: formData.name,
                 email: formData.email,
-                phoneNumber: formData.phoneNumber,
+                phoneNumber: formData.phoneNumber || undefined,
                 profilePhoto: formData.photo,
                 socialCard: cardUrl,
                 event: "through-her-lens",
@@ -741,15 +741,13 @@ export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegis
                                             {/* Phone */}
                                             <div className="space-y-2">
                                                 <Label htmlFor="phone" className={`text-sm font-poppins font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                    <span className="text-[#dc2626] mr-1">&#8226;</span>
-                                                    Phone Number
+                                                    Phone Number <span className="text-gray-400 font-normal">(optional)</span>
                                                 </Label>
                                                 <Input
                                                     id="phone"
                                                     type="tel"
                                                     value={formData.phoneNumber}
                                                     onChange={(e) => updateField("phoneNumber", e.target.value)}
-                                                    required
                                                     className={`h-12 font-inter input-red-accent transition-all duration-200 ${
                                                         isDark
                                                             ? 'bg-[#111] border-[#333] text-white placeholder-gray-500'
