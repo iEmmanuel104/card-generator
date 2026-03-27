@@ -59,6 +59,38 @@ interface WaitlistApiResponse {
     stats: WaitlistStats;
 }
 
+interface FeedbackEntry {
+    _id: string;
+    respondentType: 'woman' | 'ally';
+    isAnonymous: boolean;
+    name?: string;
+    email?: string;
+    organization?: string;
+    belongingScore: number | null;
+    fairTreatmentScore: number | null;
+    supportScore: number | null;
+    openFeedback?: string;
+    createdAt: string;
+}
+
+interface FeedbackStats {
+    total: number;
+    womenCount: number;
+    allyCount: number;
+    anonymousCount: number;
+    avgBelonging: number | null;
+    avgFairTreatment: number | null;
+    avgSupport: number | null;
+}
+
+interface FeedbackApiResponse {
+    data: FeedbackEntry[];
+    total: number;
+    page: number;
+    totalPages: number;
+    stats: FeedbackStats;
+}
+
 const EVENT_TABS = [
     { slug: "", label: "All Events" },
     { slug: "through-her-lens", label: "Through Her Lens" },
@@ -86,7 +118,7 @@ const POSITION_COLORS: Record<string, string> = {
 };
 
 export default function AdminPage() {
-    const [adminView, setAdminView] = useState<"registrations" | "waitlist">("registrations");
+    const [adminView, setAdminView] = useState<"registrations" | "waitlist" | "insights">("registrations");
 
     // Registration state
     const [data, setData] = useState<Registration[]>([]);
@@ -110,6 +142,15 @@ export default function AdminPage() {
     const [waitlistSearchInput, setWaitlistSearchInput] = useState("");
     const [waitlistSearchQuery, setWaitlistSearchQuery] = useState("");
     const [waitlistLoading, setWaitlistLoading] = useState(true);
+
+    // Insights (feedback) state
+    const [feedbackData, setFeedbackData] = useState<FeedbackEntry[]>([]);
+    const [feedbackStats, setFeedbackStats] = useState<FeedbackStats>({ total: 0, womenCount: 0, allyCount: 0, anonymousCount: 0, avgBelonging: null, avgFairTreatment: null, avgSupport: null });
+    const [feedbackPage, setFeedbackPage] = useState(1);
+    const [feedbackTotalPages, setFeedbackTotalPages] = useState(1);
+    const [feedbackTotal, setFeedbackTotal] = useState(0);
+    const [feedbackLoading, setFeedbackLoading] = useState(true);
+    const [selectedFeedback, setSelectedFeedback] = useState<FeedbackEntry | null>(null);
 
     // Detail modal state
     const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
@@ -197,9 +238,38 @@ export default function AdminPage() {
         if (adminView === "registrations") fetchData();
     }, [fetchData, adminView]);
 
+    // Fetch feedback (insights)
+    const fetchFeedback = useCallback(async () => {
+        setFeedbackLoading(true);
+        try {
+            const params = new URLSearchParams();
+            params.set("page", String(feedbackPage));
+            params.set("limit", "20");
+            const res = await fetch(`/api/feedback?${params.toString()}`);
+            if (!res.ok) throw new Error("Failed to fetch");
+            const json: FeedbackApiResponse = await res.json();
+            setFeedbackData(json.data);
+            setFeedbackStats(json.stats);
+            setFeedbackTotal(json.total);
+            setFeedbackTotalPages(json.totalPages);
+        } catch (error) {
+            console.error("Error fetching feedback:", error);
+        } finally {
+            setFeedbackLoading(false);
+        }
+    }, [feedbackPage]);
+
     useEffect(() => {
         if (adminView === "waitlist") fetchWaitlist();
     }, [fetchWaitlist, adminView]);
+
+    useEffect(() => {
+        if (adminView === "insights") fetchFeedback();
+    }, [fetchFeedback, adminView]);
+
+    const handleFeedbackExport = () => {
+        window.open("/api/feedback/export", "_blank");
+    };
 
     const handleExport = () => {
         const params = new URLSearchParams();
@@ -310,6 +380,16 @@ export default function AdminPage() {
                         }`}
                     >
                         Waitlist
+                    </button>
+                    <button
+                        onClick={() => setAdminView("insights")}
+                        className={`px-5 py-3 text-sm font-semibold font-inter whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                            adminView === "insights"
+                                ? "border-[#dc2626] text-[#dc2626]"
+                                : "border-transparent text-gray-400 hover:text-gray-900 hover:border-gray-300"
+                        }`}
+                    >
+                        Insights
                     </button>
                 </div>
 
@@ -516,6 +596,175 @@ export default function AdminPage() {
                                         <button
                                             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                                             disabled={page >= totalPages}
+                                            className="bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-1 font-inter"
+                                        >
+                                            Next
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </>
+                ) : adminView === "insights" ? (
+                    /* ── Insights (Workplace Feedback) ── */
+                    <>
+                        {/* Insights Stats */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                <p className="text-3xl font-bold text-[#dc2626] font-inter">{feedbackStats.total}</p>
+                                <p className="text-gray-500 text-sm mt-1 font-inter">Total Responses</p>
+                            </div>
+                            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                <p className="text-3xl font-bold text-[#dc2626] font-inter">{feedbackStats.womenCount}</p>
+                                <p className="text-gray-500 text-sm mt-1 font-inter">Women</p>
+                            </div>
+                            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                <p className="text-3xl font-bold text-[#dc2626] font-inter">{feedbackStats.allyCount}</p>
+                                <p className="text-gray-500 text-sm mt-1 font-inter">Allies</p>
+                            </div>
+                            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                <p className="text-3xl font-bold text-[#dc2626] font-inter">{feedbackStats.anonymousCount}</p>
+                                <p className="text-gray-500 text-sm mt-1 font-inter">Anonymous</p>
+                            </div>
+                        </div>
+
+                        {/* Average Score Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                            {[
+                                { label: 'Avg Belonging (Q1)', value: feedbackStats.avgBelonging },
+                                { label: 'Avg Fair Treatment (Q2)', value: feedbackStats.avgFairTreatment },
+                                { label: 'Avg Support (Q3)', value: feedbackStats.avgSupport },
+                            ].map((item) => (
+                                <div key={item.label} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                                    <p className="text-2xl font-bold text-[#dc2626] font-inter">
+                                        {item.value !== null ? item.value.toFixed(1) : '—'}
+                                        {item.value !== null && <span className="text-sm text-gray-400 font-normal"> / 5</span>}
+                                    </p>
+                                    <p className="text-gray-500 text-sm mt-1 font-inter">{item.label}</p>
+                                    {item.value !== null && (
+                                        <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-[#dc2626] rounded-full transition-all"
+                                                style={{ width: `${(item.value / 5) * 100}%` }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Export bar */}
+                        <div className="flex justify-end mb-6">
+                            <button
+                                onClick={handleFeedbackExport}
+                                className="bg-[#dc2626] hover:bg-[#b91c1c] text-white rounded-lg px-4 py-2 text-sm font-medium font-inter flex items-center gap-2 transition-colors"
+                            >
+                                <Download className="w-4 h-4" />
+                                Export Insights CSV
+                            </button>
+                        </div>
+
+                        {/* Feedback Table */}
+                        {feedbackLoading ? (
+                            <div className="flex items-center justify-center py-20">
+                                <div className="w-8 h-8 border-2 border-[#dc2626] border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        ) : feedbackData.length === 0 ? (
+                            <div className="text-center py-20 border border-gray-200 rounded-xl bg-gray-50">
+                                <p className="text-gray-400 text-lg font-inter">No feedback responses yet</p>
+                                <p className="text-gray-400 text-sm mt-2 font-inter">
+                                    Responses will appear here once people complete the feedback form.
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                                    <table className="w-full min-w-[800px] font-inter">
+                                        <thead>
+                                            <tr className="border-b border-gray-200 bg-gray-50">
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">Date</th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">Type</th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">Anon?</th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">Name</th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">Organization</th>
+                                                <th className="text-center text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">Q1</th>
+                                                <th className="text-center text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">Q2</th>
+                                                <th className="text-center text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">Q3</th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">Story</th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {feedbackData.map((entry, index) => (
+                                                <tr
+                                                    key={entry._id}
+                                                    className={`border-b border-gray-100 ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"} hover:bg-gray-50 transition-colors`}
+                                                >
+                                                    <td className="px-4 py-3 text-sm text-gray-400">{formatDate(entry.createdAt)}</td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${entry.respondentType === 'woman' ? 'bg-pink-50 text-pink-600' : 'bg-blue-50 text-blue-600'}`}>
+                                                            {entry.respondentType}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`w-2 h-2 rounded-full inline-block ${entry.isAnonymous ? 'bg-gray-400' : 'bg-green-500'}`} />
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                                                        {entry.isAnonymous ? <span className="text-gray-400 italic">Anonymous</span> : entry.name}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-500">{entry.organization || '—'}</td>
+                                                    {[entry.belongingScore, entry.fairTreatmentScore, entry.supportScore].map((score, si) => (
+                                                        <td key={si} className="px-4 py-3 text-center">
+                                                            {score === null ? (
+                                                                <span className="text-gray-300 text-sm">—</span>
+                                                            ) : (
+                                                                <span className={`inline-block w-6 h-6 rounded-full text-xs font-bold text-white flex items-center justify-center mx-auto ${score <= 2 ? 'bg-red-400' : score === 3 ? 'bg-amber-400' : 'bg-green-500'}`}>
+                                                                    {score}
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                    ))}
+                                                    <td className="px-4 py-3">
+                                                        <span className={`text-xs ${entry.openFeedback ? 'text-[#dc2626]' : 'text-gray-300'}`}>
+                                                            {entry.openFeedback ? 'Yes' : 'No'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <button
+                                                            onClick={() => setSelectedFeedback(entry)}
+                                                            className="p-1.5 rounded-lg text-gray-400 hover:text-[#dc2626] hover:bg-red-50 transition-colors"
+                                                            title="View details"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Feedback Pagination */}
+                                <div className="flex items-center justify-between mt-6">
+                                    <p className="text-sm text-gray-500 font-inter">
+                                        Showing {(feedbackPage - 1) * 20 + 1}{"\u2013"}{Math.min(feedbackPage * 20, feedbackTotal)} of {feedbackTotal} results
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setFeedbackPage((p) => Math.max(1, p - 1))}
+                                            disabled={feedbackPage <= 1}
+                                            className="bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-1 font-inter"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                            Prev
+                                        </button>
+                                        <span className="text-sm text-gray-500 px-2 font-inter">
+                                            Page {feedbackPage} of {feedbackTotalPages}
+                                        </span>
+                                        <button
+                                            onClick={() => setFeedbackPage((p) => Math.min(feedbackTotalPages, p + 1))}
+                                            disabled={feedbackPage >= feedbackTotalPages}
                                             className="bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-1 font-inter"
                                         >
                                             Next
@@ -798,6 +1047,87 @@ export default function AdminPage() {
                                             <Download className="w-4 h-4" />
                                             Download Social Card
                                         </button>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Feedback Detail Modal */}
+            <Dialog open={!!selectedFeedback} onOpenChange={() => setSelectedFeedback(null)}>
+                <DialogContent className="w-[90vw] max-w-lg max-h-[90vh] overflow-y-auto bg-white border-gray-200">
+                    {selectedFeedback && (
+                        <>
+                            <DialogHeader>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center text-pink-400 text-lg font-bold font-inter">
+                                        {selectedFeedback.isAnonymous ? '?' : (selectedFeedback.name || '?').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <DialogTitle className="text-xl font-bold text-gray-900 font-inter">
+                                            {selectedFeedback.isAnonymous ? 'Anonymous Respondent' : (selectedFeedback.name || 'Unknown')}
+                                        </DialogTitle>
+                                        <DialogDescription className="flex items-center gap-2 mt-1">
+                                            <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${selectedFeedback.respondentType === 'woman' ? 'bg-pink-50 text-pink-600' : 'bg-blue-50 text-blue-600'}`}>
+                                                {selectedFeedback.respondentType}
+                                            </span>
+                                            <span className="text-sm text-gray-500 font-inter">{formatDate(selectedFeedback.createdAt)}</span>
+                                        </DialogDescription>
+                                    </div>
+                                </div>
+                            </DialogHeader>
+                            <div className="space-y-4 mt-4">
+                                {!selectedFeedback.isAnonymous && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {selectedFeedback.email && (
+                                            <div>
+                                                <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Email</p>
+                                                <p className="text-sm text-gray-900 font-inter">{selectedFeedback.email}</p>
+                                            </div>
+                                        )}
+                                        {selectedFeedback.organization && (
+                                            <div>
+                                                <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Organization</p>
+                                                <p className="text-sm text-gray-900 font-inter">{selectedFeedback.organization}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                <div className="border-t border-gray-100 pt-4">
+                                    <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-3">Scores</p>
+                                    <div className="space-y-2">
+                                        {[
+                                            { label: 'Belonging (Q1)', value: selectedFeedback.belongingScore },
+                                            { label: 'Fair Treatment (Q2)', value: selectedFeedback.fairTreatmentScore },
+                                            { label: 'Support (Q3)', value: selectedFeedback.supportScore },
+                                        ].map((item) => (
+                                            <div key={item.label} className="flex items-center justify-between">
+                                                <span className="text-sm text-gray-600 font-inter">{item.label}</span>
+                                                {item.value === null ? (
+                                                    <span className="text-xs text-gray-400 font-inter italic">Prefer not to share</span>
+                                                ) : (
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                                            <div
+                                                                className={`h-full rounded-full ${item.value <= 2 ? 'bg-red-400' : item.value === 3 ? 'bg-amber-400' : 'bg-green-500'}`}
+                                                                style={{ width: `${(item.value / 5) * 100}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="text-sm font-bold text-gray-900 font-inter w-6 text-right">{item.value}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                {selectedFeedback.openFeedback && (
+                                    <div className="border-t border-gray-100 pt-4">
+                                        <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-2">Their Story</p>
+                                        <p className="text-sm text-gray-700 font-inter whitespace-pre-wrap leading-relaxed bg-gray-50 rounded-lg p-4">
+                                            {selectedFeedback.openFeedback}
+                                        </p>
                                     </div>
                                 )}
                             </div>

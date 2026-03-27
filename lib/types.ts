@@ -110,3 +110,32 @@ export interface PaginatedResponse<T> {
     page: number;
     totalPages: number;
 }
+
+// Workplace Insights Feedback types
+export type RespondentType = 'woman' | 'ally';
+export type ScoreValue = 1 | 2 | 3 | 4 | 5 | null; // null = "prefer not to share"
+
+export interface WorkplaceFeedback {
+    _id?: ObjectId;
+    event: 'through-her-lens';
+    respondentType: RespondentType;
+    isAnonymous: boolean;
+    name?: string;
+    email?: string;
+    organization?: string;
+    belongingScore: ScoreValue;
+    fairTreatmentScore: ScoreValue;
+    supportScore: ScoreValue;
+    openFeedback?: string;
+    createdAt: Date;
+}
+
+export interface FeedbackStats {
+    total: number;
+    womenCount: number;
+    allyCount: number;
+    anonymousCount: number;
+    avgBelonging: number | null;
+    avgFairTreatment: number | null;
+    avgSupport: number | null;
+}
