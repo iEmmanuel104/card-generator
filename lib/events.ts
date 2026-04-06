@@ -83,8 +83,14 @@ const events: Record<EventSlug, EventConfig> = {
         speakersEnabled: true,
         partners: [
             { name: 'Telkom', logoPath: '/partners/through-her-lens-joburg/telkom.png' },
+            { name: 'Amstel Malta', logoPath: '/partners/through-her-lens/amstel-malta.png' },
+            { name: 'Bank of Industry', logoPath: '/partners/through-her-lens/bank-of-industry.png' },
+            { name: 'NCAC', logoPath: '/partners/through-her-lens/ncac.jpeg' },
+            { name: 'Unstereotype Alliance', logoPath: '/partners/through-her-lens/unstereotype-alliance.jpg' },
         ],
-        mediaPartners: [],
+        mediaPartners: [
+            { name: 'Marketing Edge', logoPath: '/partners/through-her-lens/marketing-edge.webp' },
+        ],
     },
 };
 
