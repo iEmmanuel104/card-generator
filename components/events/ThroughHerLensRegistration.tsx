@@ -14,9 +14,7 @@ import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import { SuccessModal } from "@/components/SuccessModal";
 import { BrandPartners } from "@/components/events/BrandPartners";
 import { getEventConfig } from "@/lib/events";
-import type { RegistrationRole, SpeakerFormData } from "@/lib/types";
-
-const eventConfig = getEventConfig("through-her-lens");
+import type { EventSlug, RegistrationRole, SpeakerFormData } from "@/lib/types";
 
 // Floating particle positions
 const particles = [
@@ -197,18 +195,18 @@ function drawLogoBlock(ctx: CanvasRenderingContext2D, logoImg: HTMLImageElement)
     ctx.drawImage(logoImg, 76, 72, targetW, targetH);
 }
 
-function drawDateVenue(ctx: CanvasRenderingContext2D, W: number) {
+function drawDateVenue(ctx: CanvasRenderingContext2D, W: number, dateText: string, venueText: string) {
     ctx.save();
     ctx.textAlign = 'right';
     const rightEdge = W - 66;
 
     ctx.fillStyle = '#dc2626';
     ctx.font = '700 78px "Playfair Display"';
-    ctx.fillText('March 30', rightEdge, 192);
+    ctx.fillText(dateText, rightEdge, 192);
 
     ctx.fillStyle = '#888888';
     ctx.font = 'italic 700 37px "Playfair Display"';
-    ctx.fillText('Alliance Francaise de Lagos.', rightEdge, 242);
+    ctx.fillText(venueText, rightEdge, 242);
 
     ctx.restore();
 }
@@ -248,9 +246,11 @@ function drawNameAndRole(
 
 interface ThroughHerLensRegistrationProps {
     role: RegistrationRole;
+    eventSlug?: EventSlug;
 }
 
-export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegistrationProps) {
+export default function ThroughHerLensRegistration({ role, eventSlug = "through-her-lens" }: ThroughHerLensRegistrationProps) {
+    const eventConfig = getEventConfig(eventSlug);
     const [formData, setFormData] = useState<SpeakerFormData>({
         name: "",
         email: "",
@@ -321,7 +321,7 @@ export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegis
     const checkExistingRegistration = async (email: string) => {
         if (!email.trim()) return;
         try {
-            const res = await fetch(`/api/register?email=${encodeURIComponent(email)}&event=through-her-lens`);
+            const res = await fetch(`/api/register?email=${encodeURIComponent(email)}&event=${eventSlug}`);
             const data = await res.json();
             if (data.registered) {
                 setExistingCard({ socialCard: data.socialCard, name: data.name });
@@ -400,7 +400,7 @@ export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegis
         drawLogoBlock(ctx, logoImg);
 
         // 6. Date + venue (top-right)
-        drawDateVenue(ctx, W);
+        drawDateVenue(ctx, W, eventConfig.cardDateText ?? eventConfig.date, eventConfig.cardVenueText ?? eventConfig.venue);
 
         // 7. Name + role (bottom)
         const roleText = role === 'speaker'
@@ -409,7 +409,7 @@ export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegis
         drawNameAndRole(ctx, W, H, formData.name, roleText);
 
         return canvas.toDataURL("image/png");
-    }, [formData.photo, formData.name, formData.talkTitle, formData.organization, role]);
+    }, [formData.photo, formData.name, formData.talkTitle, formData.organization, role, eventConfig]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -428,7 +428,7 @@ export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegis
                 phoneNumber: formData.phoneNumber || undefined,
                 profilePhoto: formData.photo,
                 socialCard: cardUrl,
-                event: "through-her-lens",
+                event: eventSlug,
                 role,
                 organization: formData.organization || undefined,
                 ...(role === "speaker" ? { talkTitle: formData.talkTitle, bio: formData.bio } : {}),
@@ -650,7 +650,7 @@ export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegis
                                 <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#dc2626]" />
                             </div>
                             <p className="text-gray-500 font-inter text-sm">
-                                Join us on March 30th
+                                Join us on {eventConfig.date}
                             </p>
                         </div>
 
@@ -930,7 +930,8 @@ export default function ThroughHerLensRegistration({ role }: ThroughHerLensRegis
                 onClose={handleModalClose}
                 socialCardUrl={socialCardUrl}
                 theme={pageTheme}
-                eventName="through-her-lens"
+                eventName={eventSlug}
+                eventDate={eventConfig.date}
                 emailSent={emailSent}
             />
         </div>

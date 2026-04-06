@@ -2,7 +2,7 @@
 import { ObjectId } from 'mongodb';
 
 // Event types
-export type EventSlug = 'this-is-lagos' | 'through-her-lens';
+export type EventSlug = 'this-is-lagos' | 'through-her-lens' | 'through-her-lens-joburg';
 export type RegistrationRole = 'attendee' | 'speaker';
 
 export interface EventPartner {
@@ -30,6 +30,8 @@ export interface EventConfig {
         width: number;
         height: number;
     };
+    cardDateText?: string;
+    cardVenueText?: string;
     speakersEnabled: boolean;
     partners: EventPartner[];
     mediaPartners: EventPartner[];

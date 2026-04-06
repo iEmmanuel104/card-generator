@@ -64,11 +64,12 @@ export default function EventsHub() {
                 {/* Event Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                     {events.map((event, index) => {
-                        const isTHL = event.slug === "through-her-lens";
+                        const isTHLJoburg = event.slug === "through-her-lens-joburg";
+                        const isTHLLagos = event.slug === "through-her-lens";
                         const isTIL = event.slug === "this-is-lagos";
 
-                        if (isTHL) {
-                            // THL — Active event with dramatic dark card styling
+                        if (isTHLJoburg) {
+                            // THL Johannesburg — Active event with dramatic dark card styling
                             return (
                                 <motion.div
                                     key={event.slug}
@@ -77,7 +78,7 @@ export default function EventsHub() {
                                     transition={{ duration: 0.5, delay: 0.2 + index * 0.15 }}
                                     className="md:order-first"
                                 >
-                                    <Link href={`/${event.slug}`}>
+                                    <Link href="/through-her-lens">
                                         <div className="group relative rounded-2xl border-2 border-[#333] p-8 transition-all duration-300 hover:shadow-xl hover:shadow-red-900/20 hover:-translate-y-1 hover:border-[#dc2626]/50 cursor-pointer h-full flex flex-col overflow-hidden bg-[#0a0a0a]">
                                             {/* Background flyer image with overlay */}
                                             <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity duration-500">
@@ -115,6 +116,44 @@ export default function EventsHub() {
                                             </div>
                                         </div>
                                     </Link>
+                                </motion.div>
+                            );
+                        }
+
+                        if (isTHLLagos) {
+                            // THL Lagos — Past event, dark card, non-interactive
+                            return (
+                                <motion.div
+                                    key={event.slug}
+                                    initial={{ opacity: 0, y: 30 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.2 + index * 0.15 }}
+                                >
+                                    <div className="relative rounded-2xl border-2 border-[#333] p-8 h-full flex flex-col bg-[#0a0a0a] opacity-60">
+                                        <div className="absolute top-4 right-4 bg-[#333] text-gray-400 text-[10px] font-poppins font-medium uppercase tracking-wider px-3 py-1 rounded-full">
+                                            Event Concluded
+                                        </div>
+
+                                        <h2 className="text-2xl md:text-3xl font-dakdo font-bold mb-3 text-gray-500">
+                                            {event.name} — Lagos
+                                        </h2>
+                                        <p className="text-sm md:text-base font-inter mb-6 leading-relaxed text-gray-500 flex-1">
+                                            {event.tagline}
+                                        </p>
+                                        <div className="space-y-2 mb-6 text-sm font-inter text-gray-500">
+                                            <p className="flex items-center gap-2">
+                                                <Calendar className="w-3.5 h-3.5 text-gray-500" />
+                                                {event.date}
+                                            </p>
+                                            <p className="flex items-center gap-2">
+                                                <MapPin className="w-3.5 h-3.5 text-gray-500" />
+                                                {event.venue}
+                                            </p>
+                                        </div>
+                                        <p className="text-xs font-inter text-gray-500">
+                                            March 2026
+                                        </p>
+                                    </div>
                                 </motion.div>
                             );
                         }

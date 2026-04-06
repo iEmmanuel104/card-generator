@@ -12,6 +12,7 @@ interface SuccessModalProps {
     socialCardUrl: string;
     theme?: 'light' | 'dark';
     eventName?: string;
+    eventDate?: string;
     emailSent?: boolean;
 }
 
@@ -36,6 +37,7 @@ export function SuccessModal({
     socialCardUrl,
     theme = 'light',
     eventName = 'this-is-lagos',
+    eventDate,
     emailSent = false,
 }: SuccessModalProps) {
     const isDark = theme === 'dark';
@@ -97,7 +99,7 @@ export function SuccessModal({
                                     You&apos;re in!
                                 </DialogTitle>
                                 <p className="text-gray-400 text-sm font-inter text-center mt-1">
-                                    See you on March 30th
+                                    {eventDate ? `See you on ${eventDate}` : "See you there!"}
                                 </p>
                             </DialogHeader>
 

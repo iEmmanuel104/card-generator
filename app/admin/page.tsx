@@ -93,7 +93,8 @@ interface FeedbackApiResponse {
 
 const EVENT_TABS = [
     { slug: "", label: "All Events" },
-    { slug: "through-her-lens", label: "Through Her Lens" },
+    { slug: "through-her-lens", label: "THL Lagos" },
+    { slug: "through-her-lens-joburg", label: "THL Johannesburg" },
     { slug: "this-is-lagos", label: "This Is Lagos" },
 ] as const;
 
@@ -313,7 +314,8 @@ export default function AdminPage() {
     const formatEventName = (slug: string) => {
         switch (slug) {
             case "this-is-lagos": return "This Is Lagos";
-            case "through-her-lens": return "Through Her Lens";
+            case "through-her-lens": return "THL Lagos";
+            case "through-her-lens-joburg": return "THL Johannesburg";
             default: return slug;
         }
     };

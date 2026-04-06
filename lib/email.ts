@@ -32,10 +32,11 @@ export async function sendRegistrationConfirmation(
             eventVenue: params.event.venue,
             socialCardUrl: params.socialCardUrl,
             talkTitle: params.talkTitle,
+            eventUrl: `/${params.event.slug}`,
         });
 
         await resend.emails.send({
-            from: 'Blkat Events Through Her Lens <blkatevents@busy2shop.com>',
+            from: `Blkat Events ${params.event.name} <blkatevents@busy2shop.com>`,
             to: params.to,
             subject: `Registration Confirmed - ${params.event.name}`,
             html,

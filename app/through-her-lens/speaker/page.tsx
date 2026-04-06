@@ -3,5 +3,5 @@
 import ThroughHerLensRegistration from "@/components/events/ThroughHerLensRegistration";
 
 export default function ThroughHerLensSpeakerPage() {
-    return <ThroughHerLensRegistration role="speaker" />;
+    return <ThroughHerLensRegistration role="speaker" eventSlug="through-her-lens-joburg" />;
 }

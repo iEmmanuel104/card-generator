@@ -44,6 +44,8 @@ const events: Record<EventSlug, EventConfig> = {
             width: 1080,
             height: 1485,
         },
+        cardDateText: 'March 30',
+        cardVenueText: 'Alliance Francaise de Lagos.',
         speakersEnabled: true,
         partners: [
             { name: 'Amstel Malta', logoPath: '/partners/through-her-lens/amstel-malta.png' },
@@ -56,6 +58,33 @@ const events: Record<EventSlug, EventConfig> = {
         mediaPartners: [
             { name: 'Marketing Edge', logoPath: '/partners/through-her-lens/marketing-edge.webp' },
         ],
+    },
+    'through-her-lens-joburg': {
+        slug: 'through-her-lens-joburg',
+        name: 'Through Her Lens - Johannesburg',
+        tagline: 'Celebrating the Female Gender and Gender Equality in the Creative Space',
+        date: 'April 15, 2026',
+        time: '9:00 AM - 2:00 PM',
+        venue: 'Forrest Rd & 6th Ave, Inanda, Sandton, 2196, South Africa',
+        theme: 'dark',
+        colors: {
+            primary: '#dc2626',
+            secondary: '#991b1b',
+            accent: '#dc2626',
+            background: '#0a0a0a',
+        },
+        cardTemplate: {
+            path: '/images/thl-card-template.jpg',
+            width: 1080,
+            height: 1485,
+        },
+        cardDateText: 'April 15',
+        cardVenueText: 'Sandton, Johannesburg.',
+        speakersEnabled: true,
+        partners: [
+            { name: 'Telkom', logoPath: '/partners/through-her-lens-joburg/telkom.png' },
+        ],
+        mediaPartners: [],
     },
 };
 
