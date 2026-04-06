@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import type { ScoreValue, RespondentType } from '@/lib/types';
 
+const VALID_THL_EVENTS = new Set(['through-her-lens', 'through-her-lens-joburg']);
+
 const VALID_SCORES = new Set([1, 2, 3, 4, 5, null]);
 
 function isValidScore(v: unknown): v is ScoreValue {
@@ -13,6 +15,7 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
         const {
+            event,
             respondentType,
             isAnonymous,
             name,
@@ -23,6 +26,8 @@ export async function POST(request: Request) {
             supportScore,
             openFeedback,
         } = body;
+
+        const eventSlug = (event && VALID_THL_EVENTS.has(event)) ? event : 'through-her-lens-joburg';
 
         // Validate required fields
         if (!respondentType || !['woman', 'ally'].includes(respondentType)) {
@@ -45,7 +50,7 @@ export async function POST(request: Request) {
         const db = client.db('eventRegistrations');
 
         const doc: Record<string, unknown> = {
-            event: 'through-her-lens',
+            event: eventSlug,
             respondentType: respondentType as RespondentType,
             isAnonymous,
             belongingScore: belongingScore ?? null,
@@ -81,8 +86,14 @@ export async function GET(request: NextRequest) {
         const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
         const respondentTypeFilter = searchParams.get('respondentType');
         const anonymousFilter = searchParams.get('anonymous');
+        const eventFilter = searchParams.get('event');
 
-        const conditions: Record<string, unknown>[] = [{ event: 'through-her-lens' }];
+        const conditions: Record<string, unknown>[] = [];
+        if (eventFilter && VALID_THL_EVENTS.has(eventFilter)) {
+            conditions.push({ event: eventFilter });
+        } else {
+            conditions.push({ event: { $in: [...VALID_THL_EVENTS] } });
+        }
         if (respondentTypeFilter && ['woman', 'ally'].includes(respondentTypeFilter)) {
             conditions.push({ respondentType: respondentTypeFilter });
         }
@@ -104,7 +115,7 @@ export async function GET(request: NextRequest) {
                 .toArray(),
             collection.countDocuments(filter),
             collection.aggregate([
-                { $match: { event: 'through-her-lens' } },
+                { $match: filter },
                 {
                     $group: {
                         _id: null,

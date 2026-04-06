@@ -226,6 +226,7 @@ export default function FeedbackPage() {
         setIsSubmitting(true);
         try {
             const payload: Record<string, unknown> = {
+                event: 'through-her-lens-joburg',
                 respondentType: formState.respondentType,
                 isAnonymous: formState.isAnonymous,
                 belongingScore: formState.belongingScore ?? null,

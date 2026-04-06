@@ -61,6 +61,7 @@ interface WaitlistApiResponse {
 
 interface FeedbackEntry {
     _id: string;
+    event?: string;
     respondentType: 'woman' | 'ally';
     isAnonymous: boolean;
     name?: string;
@@ -151,6 +152,7 @@ export default function AdminPage() {
     const [feedbackTotalPages, setFeedbackTotalPages] = useState(1);
     const [feedbackTotal, setFeedbackTotal] = useState(0);
     const [feedbackLoading, setFeedbackLoading] = useState(true);
+    const [feedbackEvent, setFeedbackEvent] = useState("");
     const [selectedFeedback, setSelectedFeedback] = useState<FeedbackEntry | null>(null);
 
     // Detail modal state
@@ -244,6 +246,7 @@ export default function AdminPage() {
         setFeedbackLoading(true);
         try {
             const params = new URLSearchParams();
+            if (feedbackEvent) params.set("event", feedbackEvent);
             params.set("page", String(feedbackPage));
             params.set("limit", "20");
             const res = await fetch(`/api/feedback?${params.toString()}`);
@@ -258,7 +261,7 @@ export default function AdminPage() {
         } finally {
             setFeedbackLoading(false);
         }
-    }, [feedbackPage]);
+    }, [feedbackPage, feedbackEvent]);
 
     useEffect(() => {
         if (adminView === "waitlist") fetchWaitlist();
@@ -269,7 +272,9 @@ export default function AdminPage() {
     }, [fetchFeedback, adminView]);
 
     const handleFeedbackExport = () => {
-        window.open("/api/feedback/export", "_blank");
+        const params = new URLSearchParams();
+        if (feedbackEvent) params.set("event", feedbackEvent);
+        window.open(`/api/feedback/export?${params.toString()}`, "_blank");
     };
 
     const handleExport = () => {
@@ -611,6 +616,27 @@ export default function AdminPage() {
                 ) : adminView === "insights" ? (
                     /* ── Insights (Workplace Feedback) ── */
                     <>
+                        {/* Feedback Event Tabs */}
+                        <div className="flex items-center gap-1 mb-6 border-b border-gray-200 overflow-x-auto">
+                            {[
+                                { slug: "", label: "All THL Events" },
+                                { slug: "through-her-lens", label: "THL Lagos" },
+                                { slug: "through-her-lens-joburg", label: "THL Johannesburg" },
+                            ].map((tab) => (
+                                <button
+                                    key={tab.slug}
+                                    onClick={() => { setFeedbackEvent(tab.slug); setFeedbackPage(1); }}
+                                    className={`px-4 py-3 text-sm font-medium font-inter whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                                        feedbackEvent === tab.slug
+                                            ? "border-[#dc2626] text-[#dc2626]"
+                                            : "border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300"
+                                    }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+
                         {/* Insights Stats */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                             <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">

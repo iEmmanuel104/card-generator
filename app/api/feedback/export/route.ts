@@ -2,6 +2,8 @@
 import { NextRequest } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 
+const VALID_THL_EVENTS = new Set(['through-her-lens', 'through-her-lens-joburg']);
+
 function escapeCsvValue(value: string | number | undefined | null): string {
     if (value === undefined || value === null) return '';
     const str = String(value);
@@ -21,8 +23,14 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const respondentTypeFilter = searchParams.get('respondentType');
         const anonymousFilter = searchParams.get('anonymous');
+        const eventFilter = searchParams.get('event');
 
-        const conditions: Record<string, unknown>[] = [{ event: 'through-her-lens' }];
+        const conditions: Record<string, unknown>[] = [];
+        if (eventFilter && VALID_THL_EVENTS.has(eventFilter)) {
+            conditions.push({ event: eventFilter });
+        } else {
+            conditions.push({ event: { $in: [...VALID_THL_EVENTS] } });
+        }
         if (respondentTypeFilter && ['woman', 'ally'].includes(respondentTypeFilter)) {
             conditions.push({ respondentType: respondentTypeFilter });
         }
@@ -68,7 +76,8 @@ export async function GET(request: NextRequest) {
 
         const csv = [headers.join(','), ...rows].join('\n');
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const filename = `feedback-through-her-lens-${timestamp}.csv`;
+        const filenameEvent = eventFilter || 'all-thl';
+        const filename = `feedback-${filenameEvent}-${timestamp}.csv`;
 
         return new Response(csv, {
             status: 200,

@@ -119,7 +119,7 @@ export type ScoreValue = 1 | 2 | 3 | 4 | 5 | null; // null = "prefer not to shar
 
 export interface WorkplaceFeedback {
     _id?: ObjectId;
-    event: 'through-her-lens';
+    event: EventSlug;
     respondentType: RespondentType;
     isAnonymous: boolean;
     name?: string;
