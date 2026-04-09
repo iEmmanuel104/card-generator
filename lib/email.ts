@@ -33,6 +33,7 @@ export async function sendRegistrationConfirmation(
             socialCardUrl: params.socialCardUrl,
             talkTitle: params.talkTitle,
             eventUrl: `/${params.event.slug}`,
+            eventSlug: params.event.slug,
         });
 
         await resend.emails.send({

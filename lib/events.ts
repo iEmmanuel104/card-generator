@@ -92,6 +92,32 @@ const events: Record<EventSlug, EventConfig> = {
             { name: 'Marketing Edge', logoPath: '/partners/through-her-lens/marketing-edge.webp' },
         ],
     },
+    'the-dare-awards': {
+        slug: 'the-dare-awards',
+        name: 'The Dare Awards',
+        tagline: 'A night dedicated to visionaries redefining the creative industry',
+        date: 'April 15, 2026',
+        time: '6:00 PM - 9:00 PM',
+        venue: 'Emperors Palace Johannesburg, 64 Jones Rd, Kempton Park, Johannesburg, South Africa',
+        theme: 'dark',
+        colors: {
+            primary: '#d4af37',
+            secondary: '#a8872a',
+            accent: '#d4af37',
+            background: '#000000',
+        },
+        cardTemplate: {
+            // Not used for card generation (simple RSVP flow), kept for type compatibility
+            path: '/images/dare-awards-poster.png',
+            width: 1080,
+            height: 1485,
+        },
+        cardDateText: 'April 15',
+        cardVenueText: 'Emperors Palace, Johannesburg.',
+        speakersEnabled: false,
+        partners: [],
+        mediaPartners: [],
+    },
 };
 
 export function getEventConfig(slug: EventSlug): EventConfig {

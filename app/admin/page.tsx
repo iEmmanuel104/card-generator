@@ -96,6 +96,7 @@ const EVENT_TABS = [
     { slug: "", label: "All Events" },
     { slug: "through-her-lens", label: "THL Lagos" },
     { slug: "through-her-lens-joburg", label: "THL Johannesburg" },
+    { slug: "the-dare-awards", label: "The Dare Awards" },
     { slug: "this-is-lagos", label: "This Is Lagos" },
 ] as const;
 

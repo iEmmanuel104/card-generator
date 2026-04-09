@@ -65,8 +65,72 @@ export default function EventsHub() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                     {events.map((event, index) => {
                         const isTHLJoburg = event.slug === "through-her-lens-joburg";
+                        const isDareAwards = event.slug === "the-dare-awards";
                         const isTHLLagos = event.slug === "through-her-lens";
                         const isTIL = event.slug === "this-is-lagos";
+
+                        if (isDareAwards) {
+                            // The Dare Awards — Active event with black/gold awards-night styling
+                            return (
+                                <motion.div
+                                    key={event.slug}
+                                    initial={{ opacity: 0, y: 30 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.2 + index * 0.15 }}
+                                >
+                                    <Link href="/the-dare-awards">
+                                        <div className="group relative rounded-2xl border-2 border-[#333] p-8 transition-all duration-300 hover:shadow-xl hover:shadow-yellow-900/20 hover:-translate-y-1 hover:border-[#d4af37]/60 cursor-pointer h-full flex flex-col overflow-hidden bg-black">
+                                            {/* Poster as background with gold glow */}
+                                            <div className="absolute inset-0 opacity-[0.18] group-hover:opacity-[0.28] transition-opacity duration-500">
+                                                <Image
+                                                    src="/images/dare-awards-poster.png"
+                                                    alt=""
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                                />
+                                            </div>
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-black/30" />
+                                            <div
+                                                className="absolute inset-0 pointer-events-none"
+                                                style={{
+                                                    background:
+                                                        "radial-gradient(ellipse 70% 40% at 50% 0%, rgba(212,175,55,0.15) 0%, transparent 70%)",
+                                                }}
+                                            />
+
+                                            <div className="relative z-10">
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#d4af37]/40 bg-[#d4af37]/10 mb-4">
+                                                    <span className="text-[10px] font-poppins font-medium uppercase tracking-wider text-[#d4af37]">
+                                                        Awards Night
+                                                    </span>
+                                                </div>
+                                                <h2 className="text-2xl md:text-3xl font-dakdo font-bold mb-3 text-white">
+                                                    The <span className="text-[#d4af37]">Dare</span> Awards
+                                                </h2>
+                                                <p className="text-sm md:text-base font-inter mb-6 leading-relaxed text-gray-400 flex-1">
+                                                    {event.tagline}
+                                                </p>
+                                                <div className="space-y-2 mb-6 text-sm font-inter text-gray-500">
+                                                    <p className="flex items-center gap-2">
+                                                        <Calendar className="w-3.5 h-3.5 text-[#d4af37]" />
+                                                        {event.date} &middot; {event.time}
+                                                    </p>
+                                                    <p className="flex items-center gap-2">
+                                                        <MapPin className="w-3.5 h-3.5 text-[#d4af37]" />
+                                                        Emperors Palace, Johannesburg
+                                                    </p>
+                                                </div>
+                                                <div className="inline-flex items-center font-poppins font-semibold text-sm text-[#d4af37] group-hover:text-[#e8c252] transition-colors">
+                                                    RSVP Now
+                                                    <span className="ml-2 transition-transform group-hover:translate-x-1">&rarr;</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </motion.div>
+                            );
+                        }
 
                         if (isTHLJoburg) {
                             // THL Johannesburg — Active event with dramatic dark card styling

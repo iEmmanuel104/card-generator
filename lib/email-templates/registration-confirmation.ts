@@ -10,20 +10,65 @@ interface RegistrationEmailParams {
     socialCardUrl?: string;
     talkTitle?: string;
     eventUrl?: string;
+    eventSlug?: string;
 }
 
 export function getRegistrationEmailHtml(params: RegistrationEmailParams): string {
-    const { name, role, eventName, eventDate, eventTime, eventVenue, socialCardUrl, talkTitle, eventUrl = '/through-her-lens' } = params;
+    const { name, role, eventName, eventDate, eventTime, eventVenue, socialCardUrl, talkTitle, eventUrl = '/through-her-lens', eventSlug } = params;
+
+    // Theme per event — Dare Awards uses gold, THL uses red
+    const isDareAwards = eventSlug === 'the-dare-awards';
+    const accent = isDareAwards ? '#d4af37' : '#dc2626';
+    const accentDeep = isDareAwards ? '#a8872a' : '#991b1b';
+    const headerBg = isDareAwards
+        ? 'background: linear-gradient(135deg, #050505 0%, #111111 100%); background-color: #050505;'
+        : 'background: linear-gradient(135deg, #1a0505 0%, #111111 100%); background-color: #1a0505;';
+    const headerBgColor = isDareAwards ? '#050505' : '#1a0505';
 
     const roleBadge = role === 'speaker'
-        ? `<span style="display: inline-block; background-color: #dc2626; color: #ffffff; font-size: 12px; font-weight: 700; padding: 6px 24px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 1px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">SPEAKER</span>`
-        : `<span style="display: inline-block; background-color: transparent; color: #dc2626; font-size: 12px; font-weight: 700; padding: 4px 22px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #dc2626; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">ATTENDEE</span>`;
+        ? `<span style="display: inline-block; background-color: ${accent}; color: #ffffff; font-size: 12px; font-weight: 700; padding: 6px 24px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 1px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">SPEAKER</span>`
+        : `<span style="display: inline-block; background-color: transparent; color: ${accent}; font-size: 12px; font-weight: 700; padding: 4px 22px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 1px; border: 2px solid ${accent}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">ATTENDEE</span>`;
+
+    // Event-specific header treatment
+    const headerTitle = isDareAwards
+        ? `
+                                <tr>
+                                    <td align="center" style="padding-bottom: 6px;">
+                                        <p style="margin: 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 3px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">THE</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-bottom: 2px;">
+                                        <p style="margin: 0; font-size: 42px; font-weight: 700; color: ${accent}; font-family: Georgia, 'Times New Roman', serif; letter-spacing: 4px;">DARE</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-bottom: 22px;">
+                                        <p style="margin: 0; font-size: 18px; color: #cccccc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: 6px;">AWARDS</p>
+                                    </td>
+                                </tr>`
+        : `
+                                <tr>
+                                    <td align="center" style="padding-bottom: 6px;">
+                                        <p style="margin: 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 3px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">THROUGH</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-bottom: 2px;">
+                                        <p style="margin: 0; font-size: 36px; font-weight: 700; color: ${accent}; font-family: Georgia, 'Times New Roman', serif;">Her</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-bottom: 22px;">
+                                        <p style="margin: 0; font-size: 24px; font-style: italic; color: #cccccc; font-family: Georgia, 'Times New Roman', serif;">Lens</p>
+                                    </td>
+                                </tr>`;
 
     const speakerSection = role === 'speaker' && talkTitle ? `
                     <!-- Speaker Talk Section -->
                     <tr>
                         <td style="padding: 10px 30px 20px 30px;">
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius: 8px; border: 1px solid #333333; border-left: 4px solid #dc2626;" bgcolor="#1a1a1a">
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius: 8px; border: 1px solid #333333; border-left: 4px solid ${accent};" bgcolor="#1a1a1a">
                                 <tr>
                                     <td style="padding: 18px 20px; background-color: #1a1a1a; border-radius: 8px;">
                                         <p style="margin: 0 0 6px 0; font-size: 12px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Your Talk</p>
@@ -88,7 +133,7 @@ export function getRegistrationEmailHtml(params: RegistrationEmailParams): strin
                     <!-- HEADER SECTION -->
                     <!-- ============================================ -->
                     <tr>
-                        <td align="center" style="padding: 36px 30px 28px 30px; background: linear-gradient(135deg, #1a0505 0%, #111111 100%); background-color: #1a0505;" bgcolor="#1a0505">
+                        <td align="center" style="padding: 36px 30px 28px 30px; ${headerBg}" bgcolor="${headerBgColor}">
                             <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <!-- BLK@ EVENTS branding -->
                                 <tr>
@@ -97,27 +142,13 @@ export function getRegistrationEmailHtml(params: RegistrationEmailParams): strin
                                     </td>
                                 </tr>
                                 <!-- Event Title Treatment -->
-                                <tr>
-                                    <td align="center" style="padding-bottom: 6px;">
-                                        <p style="margin: 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 3px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">THROUGH</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td align="center" style="padding-bottom: 2px;">
-                                        <p style="margin: 0; font-size: 36px; font-weight: 700; color: #dc2626; font-family: Georgia, 'Times New Roman', serif;">Her</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td align="center" style="padding-bottom: 22px;">
-                                        <p style="margin: 0; font-size: 24px; font-style: italic; color: #cccccc; font-family: Georgia, 'Times New Roman', serif;">Lens</p>
-                                    </td>
-                                </tr>
-                                <!-- Red Divider Line -->
+                                ${headerTitle}
+                                <!-- Accent Divider Line -->
                                 <tr>
                                     <td align="center">
                                         <table cellpadding="0" cellspacing="0" border="0" width="80">
                                             <tr>
-                                                <td style="height: 2px; background-color: #dc2626; font-size: 0; line-height: 0;" bgcolor="#dc2626">&nbsp;</td>
+                                                <td style="height: 2px; background-color: ${accent}; font-size: 0; line-height: 0;" bgcolor="${accent}">&nbsp;</td>
                                             </tr>
                                         </table>
                                     </td>
@@ -156,7 +187,7 @@ export function getRegistrationEmailHtml(params: RegistrationEmailParams): strin
                                     <td width="33%" valign="top" style="padding: 0;">
                                         <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                             <tr>
-                                                <td style="padding: 16px 12px 16px 0; width: 3px; background-color: #dc2626;" bgcolor="#dc2626" width="3"></td>
+                                                <td style="padding: 16px 12px 16px 0; width: 3px; background-color: ${accent};" bgcolor="${accent}" width="3"></td>
                                                 <td style="padding: 16px 10px 16px 12px;" valign="top">
                                                     <p style="margin: 0 0 2px 0; font-size: 18px; line-height: 1;">&#x1F4C5;</p>
                                                     <p style="margin: 0 0 4px 0; font-size: 10px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Date</p>
@@ -169,7 +200,7 @@ export function getRegistrationEmailHtml(params: RegistrationEmailParams): strin
                                     <td width="33%" valign="top" style="padding: 0;">
                                         <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                             <tr>
-                                                <td style="padding: 16px 12px 16px 0; width: 3px; background-color: #dc2626;" bgcolor="#dc2626" width="3"></td>
+                                                <td style="padding: 16px 12px 16px 0; width: 3px; background-color: ${accent};" bgcolor="${accent}" width="3"></td>
                                                 <td style="padding: 16px 10px 16px 12px;" valign="top">
                                                     <p style="margin: 0 0 2px 0; font-size: 18px; line-height: 1;">&#x23F0;</p>
                                                     <p style="margin: 0 0 4px 0; font-size: 10px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Time</p>
@@ -182,7 +213,7 @@ export function getRegistrationEmailHtml(params: RegistrationEmailParams): strin
                                     <td width="34%" valign="top" style="padding: 0;">
                                         <table cellpadding="0" cellspacing="0" border="0" width="100%">
                                             <tr>
-                                                <td style="padding: 16px 12px 16px 0; width: 3px; background-color: #dc2626;" bgcolor="#dc2626" width="3"></td>
+                                                <td style="padding: 16px 12px 16px 0; width: 3px; background-color: ${accent};" bgcolor="${accent}" width="3"></td>
                                                 <td style="padding: 16px 10px 16px 12px;" valign="top">
                                                     <p style="margin: 0 0 2px 0; font-size: 18px; line-height: 1;">&#x1F4CD;</p>
                                                     <p style="margin: 0 0 4px 0; font-size: 10px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Venue</p>
@@ -209,13 +240,13 @@ export function getRegistrationEmailHtml(params: RegistrationEmailParams): strin
                                 <tr>
                                     <td align="center">
                                         <!--[if mso]>
-                                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://blkat.io${eventUrl}" style="height:48px;v-text-anchor:middle;width:100%;" arcsize="13%" fillcolor="#dc2626" strokecolor="#dc2626" strokeweight="0">
+                                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://events.blkat.org${eventUrl}" style="height:48px;v-text-anchor:middle;width:100%;" arcsize="13%" fillcolor="${accent}" strokecolor="${accent}" strokeweight="0">
                                             <w:anchorlock/>
-                                            <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">View Event Details</center>
+                                            <center style="color:${isDareAwards ? '#000000' : '#ffffff'};font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">View Event Details</center>
                                         </v:roundrect>
                                         <![endif]-->
                                         <!--[if !mso]><!-->
-                                        <a href="https://blkat.io${eventUrl}" target="_blank" style="display: block; width: 100%; background-color: #dc2626; color: #ffffff; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; padding: 14px 0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; mso-padding-alt: 0; mso-text-raise: 0;">View Event Details</a>
+                                        <a href="https://events.blkat.org${eventUrl}" target="_blank" style="display: block; width: 100%; background-color: ${accent}; color: ${isDareAwards ? '#000000' : '#ffffff'}; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; padding: 14px 0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; mso-padding-alt: 0; mso-text-raise: 0;">View Event Details</a>
                                         <!--<![endif]-->
                                     </td>
                                 </tr>

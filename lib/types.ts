@@ -2,7 +2,7 @@
 import { ObjectId } from 'mongodb';
 
 // Event types
-export type EventSlug = 'this-is-lagos' | 'through-her-lens' | 'through-her-lens-joburg';
+export type EventSlug = 'this-is-lagos' | 'through-her-lens' | 'through-her-lens-joburg' | 'the-dare-awards';
 export type RegistrationRole = 'attendee' | 'speaker';
 
 export interface EventPartner {
