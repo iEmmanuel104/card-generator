@@ -69,21 +69,30 @@ export function BrandPartners({ partners, mediaPartners }: BrandPartnersProps) {
                     whileInView="visible"
                     viewport={{ once: true }}
                 >
-                    {allPartners.map((partner) => (
-                        <motion.div
-                            key={partner.name}
-                            variants={itemVariants}
-                            className="relative h-10 w-16 sm:h-12 sm:w-20 md:h-14 md:w-24 opacity-60 hover:opacity-100 hover:scale-[1.08] hover:brightness-[1.2] transition-all duration-300 ease-out flex-shrink-0"
-                        >
-                            <Image
-                                src={partner.logoPath}
-                                alt={partner.name}
-                                fill
-                                className="object-contain"
-                                sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
-                            />
-                        </motion.div>
-                    ))}
+                    {allPartners.map((partner) => {
+                        const isTelkom = partner.name === 'Telkom';
+                        const isUnstereotype = partner.name === 'Unstereotype Alliance';
+                        const sizeClass = isTelkom
+                            ? "relative h-12 w-24 sm:h-16 sm:w-32 md:h-18 md:w-36"
+                            : isUnstereotype
+                            ? "relative h-10 w-28 sm:h-14 sm:w-36 md:h-16 md:w-44"
+                            : "relative h-10 w-16 sm:h-12 sm:w-20 md:h-14 md:w-24";
+                        return (
+                            <motion.div
+                                key={partner.name}
+                                variants={itemVariants}
+                                className={`${sizeClass} opacity-60 hover:opacity-100 hover:scale-[1.08] hover:brightness-[1.2] transition-all duration-300 ease-out flex-shrink-0`}
+                            >
+                                <Image
+                                    src={partner.logoPath}
+                                    alt={partner.name}
+                                    fill
+                                    className="object-contain"
+                                    sizes={isTelkom ? "(max-width: 640px) 96px, (max-width: 768px) 128px, 144px" : isUnstereotype ? "(max-width: 640px) 112px, (max-width: 768px) 144px, 176px" : "(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"}
+                                />
+                            </motion.div>
+                        );
+                    })}
                 </motion.div>
             </div>
         </div>
