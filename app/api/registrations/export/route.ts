@@ -2,6 +2,9 @@
 import { NextRequest } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { Filter, Document } from 'mongodb';
+import { getAllEvents } from '@/lib/events';
+
+const validEventSlugs = new Set<string>(getAllEvents().map((e) => e.slug));
 
 function escapeCsvValue(value: string | undefined | null): string {
     if (value === undefined || value === null) return '';
@@ -26,7 +29,7 @@ export async function GET(request: NextRequest) {
         // Build filter using $and to combine conditions safely
         const conditions: Filter<Document>[] = [];
 
-        if (event && (event === 'this-is-lagos' || event === 'through-her-lens' || event === 'through-her-lens-joburg')) {
+        if (event && validEventSlugs.has(event)) {
             if (event === 'this-is-lagos') {
                 // Include legacy registrations that have no event field
                 conditions.push({
