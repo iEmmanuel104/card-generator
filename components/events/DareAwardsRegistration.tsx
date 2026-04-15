@@ -255,7 +255,7 @@ export default function DareAwardsRegistration() {
                         transition={{ duration: 0.6, delay: 0.25 }}
                         className="lg:sticky lg:top-8"
                     >
-                        {submitted ? (
+                        {false && submitted ? (
                             <SuccessState
                                 name={form.name}
                                 email={form.email}
@@ -265,19 +265,52 @@ export default function DareAwardsRegistration() {
                             />
                         ) : (
                             <div
-                                className="rounded-2xl border-2 p-6 md:p-8 backdrop-blur-sm"
+                                className="rounded-2xl border-2 p-6 md:p-10 backdrop-blur-sm text-center"
                                 style={{
                                     borderColor: `${GOLD}30`,
                                     background: "linear-gradient(180deg, rgba(20,20,20,0.8) 0%, rgba(10,10,10,0.9) 100%)",
                                 }}
                             >
-                                <h2 className="text-2xl md:text-3xl font-dakdo font-bold text-white mb-2">
-                                    Reserve your seat
+                                <div
+                                    className="mx-auto w-14 h-14 rounded-full flex items-center justify-center border mb-5"
+                                    style={{ borderColor: `${GOLD}50`, background: `${GOLD}10` }}
+                                >
+                                    <CheckCircle2 className="w-7 h-7" style={{ color: GOLD }} />
+                                </div>
+                                <h2 className="text-2xl md:text-3xl font-dakdo font-bold text-white mb-3">
+                                    Registrations are closed
                                 </h2>
-                                <p className="text-sm font-inter text-gray-400 mb-6">
-                                    Fill in your details to RSVP for The Dare Awards.
+                                <p className="text-sm md:text-base font-inter text-gray-400 leading-relaxed mb-6 max-w-sm mx-auto">
+                                    RSVP for The Dare Awards is now closed. Thank you to everyone who registered — we can&apos;t wait to see you there.
                                 </p>
-
+                                <div
+                                    className="rounded-xl border p-4 text-left space-y-2 max-w-sm mx-auto"
+                                    style={{ borderColor: `${GOLD}25`, background: `${GOLD}08` }}
+                                >
+                                    <div className="flex items-center gap-2 text-xs font-poppins uppercase tracking-wider" style={{ color: GOLD }}>
+                                        <Calendar className="w-3.5 h-3.5" />
+                                        <span>{event.date}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs font-poppins uppercase tracking-wider text-gray-300">
+                                        <Clock className="w-3.5 h-3.5" style={{ color: GOLD }} />
+                                        <span>{event.time}</span>
+                                    </div>
+                                    <div className="flex items-start gap-2 text-xs font-poppins uppercase tracking-wider text-gray-300">
+                                        <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: GOLD }} />
+                                        <span>Emperors Palace Johannesburg</span>
+                                    </div>
+                                </div>
+                                <Link
+                                    href="/"
+                                    className="inline-flex items-center gap-2 mt-6 text-sm font-poppins text-gray-400 hover:text-[#d4af37] transition-colors"
+                                >
+                                    <ArrowLeft className="w-4 h-4" />
+                                    Back to events
+                                </Link>
+                            </div>
+                        )}
+                        {false && (
+                            <div className="hidden">
                                 <form onSubmit={handleSubmit} className="space-y-5">
                                     <div className="space-y-2">
                                         <Label htmlFor="name" className="text-gray-300 text-xs uppercase tracking-wider font-poppins">
