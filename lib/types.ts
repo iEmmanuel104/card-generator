@@ -2,7 +2,12 @@
 import { ObjectId } from 'mongodb';
 
 // Event types
-export type EventSlug = 'this-is-lagos' | 'through-her-lens' | 'through-her-lens-joburg' | 'the-dare-awards';
+export type EventSlug =
+    | 'this-is-lagos'
+    | 'through-her-lens'
+    | 'through-her-lens-joburg'
+    | 'the-dare-awards'
+    | 'cannes-after-dark';
 export type RegistrationRole = 'attendee' | 'speaker';
 
 export interface EventPartner {
@@ -50,6 +55,13 @@ export interface BaseRegistration {
     socialCard: string;
     emailSent: boolean;
     createdAt: Date;
+    // External-partner registrations (e.g. EventNoir Cannes After Dark) carry
+    // the BlackAt username + the partner's full form payload so the existing
+    // /admin view can render rich detail without a new UI.
+    username?: string;
+    partner?: string;
+    partnerRegistrationId?: string;
+    rawPayload?: Record<string, unknown>;
 }
 
 export interface SpeakerRegistration extends BaseRegistration {

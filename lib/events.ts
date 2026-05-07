@@ -118,6 +118,32 @@ const events: Record<EventSlug, EventConfig> = {
         partners: [],
         mediaPartners: [],
     },
+    'cannes-after-dark': {
+        slug: 'cannes-after-dark',
+        name: 'Cannes After Dark',
+        tagline: 'An exclusive night in the heart of Cannes — DJ Obi & Moonchild Sanelly',
+        date: 'June 24, 2026',
+        time: 'Doors 10:00 PM',
+        venue: 'Cannes, France',
+        theme: 'dark',
+        colors: {
+            primary: '#d4af37',
+            secondary: '#1a1a1a',
+            accent: '#d4af37',
+            background: '#000000',
+        },
+        cardTemplate: {
+            // Promo only — no social-card generation; kept for type compatibility.
+            path: '/images/cannes-after-dark-poster.png',
+            width: 1080,
+            height: 1485,
+        },
+        cardDateText: 'June 24',
+        cardVenueText: 'Cannes, France.',
+        speakersEnabled: false,
+        partners: [],
+        mediaPartners: [],
+    },
 };
 
 export function getEventConfig(slug: EventSlug): EventConfig {

@@ -98,6 +98,7 @@ const EVENT_TABS = [
     { slug: "through-her-lens-joburg", label: "THL Johannesburg" },
     { slug: "the-dare-awards", label: "The Dare Awards" },
     { slug: "this-is-lagos", label: "This Is Lagos" },
+    { slug: "cannes-after-dark", label: "Cannes After Dark" },
 ] as const;
 
 const POSITION_OPTIONS = [
@@ -322,6 +323,8 @@ export default function AdminPage() {
             case "this-is-lagos": return "This Is Lagos";
             case "through-her-lens": return "THL Lagos";
             case "through-her-lens-joburg": return "THL Johannesburg";
+            case "the-dare-awards": return "The Dare Awards";
+            case "cannes-after-dark": return "Cannes After Dark";
             default: return slug;
         }
     };
