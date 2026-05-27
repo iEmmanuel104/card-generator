@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Download, ChevronLeft, ChevronRight, ArrowLeft, Eye } from "lucide-react";
+import { Search, Download, ChevronLeft, ChevronRight, ArrowLeft, Eye, LogOut } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface Registration {
@@ -359,13 +359,24 @@ export default function AdminPage() {
                         <Image src="/images/logo.png" alt="BLK@ Logo" width={80} height={40} className="h-auto" />
                         <span className="text-gray-400 text-sm font-inter">/ Admin</span>
                     </div>
-                    <Link
-                        href="/"
-                        className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-900 transition-colors font-inter"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to site
-                    </Link>
+                    <div className="flex items-center gap-5">
+                        <Link
+                            href="/"
+                            className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-900 transition-colors font-inter"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            Back to site
+                        </Link>
+                        {/* Sign out — clears the HMAC session cookie via the logout
+                            route, which redirects back to /admin/login. */}
+                        <a
+                            href="/api/admin-auth/logout"
+                            className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-900 transition-colors font-inter"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            Sign out
+                        </a>
+                    </div>
                 </div>
             </header>
 
