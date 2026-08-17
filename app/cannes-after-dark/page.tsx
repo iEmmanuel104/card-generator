@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 const POSTER_URL =
-    "https://res.cloudinary.com/drc6omjqc/image/upload/v1778178165/blkat/events/cannes-after-dark-poster.jpg";
+    "https://res.cloudinary.com/drc6omjqc/image/upload/v1779395615/blkat/events/cannes-after-dark-poster.png";
 
 export default function CannesAfterDarkPromo() {
     const blkatBase = process.env.NEXT_PUBLIC_BLKAT_URL || "http://localhost:5173";
@@ -18,7 +18,7 @@ export default function CannesAfterDarkPromo() {
                     <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-[#d4af37]/30 shadow-[0_0_60px_-15px_rgba(212,175,55,0.4)]">
                         <Image
                             src={POSTER_URL}
-                            alt="Cannes After Dark — Wednesday June 24, Cannes France"
+                            alt="Cannes After Dark with Obi House — Wednesday June 24 2026, Cannes France"
                             fill
                             priority
                             className="object-cover"
@@ -38,13 +38,26 @@ export default function CannesAfterDarkPromo() {
                             <br />
                             After Dark
                         </h1>
-                        <p className="text-lg text-neutral-300 max-w-md">
-                            Music by <span className="text-white font-medium">DJ Obi</span>. Live
-                            performance by{" "}
-                            <span className="text-white font-medium">Moonchild Sanelly</span>.
-                            <br />
-                            Wednesday, June 24th — Cannes, France. Doors open 10pm. Dress to impress.
-                        </p>
+                        <div className="space-y-4 text-base md:text-lg text-neutral-300 max-w-md leading-relaxed">
+                            <p>
+                                When the Croisette goes quiet,{" "}
+                                <span className="text-white font-medium">Cannes After Dark</span>{" "}
+                                begins. Step inside BlackAt's most exclusive night of Cannes Lions
+                                2026 — a private, by-invitation gathering of the global creative
+                                class, hosted at a secret location on the French Riviera.
+                            </p>
+                            <p>
+                                Headlined by{" "}
+                                <span className="text-white font-medium">Obi House</span>, the
+                                night moves through Afro House, Amapiano, R&B and global grooves
+                                until the sun comes up over the Mediterranean. Expect a curated
+                                crowd of creatives, founders, brand leaders and culture-shapers —
+                                the people behind the work that defines this year's festival.
+                            </p>
+                            <p className="text-sm text-neutral-400">
+                                Doors open 10PM. Music 11PM till dawn. Dress to impress.
+                            </p>
+                        </div>
 
                         <div className="grid grid-cols-2 gap-4 max-w-md text-sm">
                             <div>
@@ -55,21 +68,21 @@ export default function CannesAfterDarkPromo() {
                             </div>
                             <div>
                                 <p className="text-neutral-500 uppercase tracking-wider text-[10px]">
-                                    Doors
+                                    Time
                                 </p>
-                                <p className="text-white">10:00 PM</p>
+                                <p className="text-white">11PM till Dawn</p>
                             </div>
                             <div>
                                 <p className="text-neutral-500 uppercase tracking-wider text-[10px]">
                                     Location
                                 </p>
-                                <p className="text-white">Cannes, France</p>
+                                <p className="text-white">Secret Location · Cannes</p>
                             </div>
                             <div>
                                 <p className="text-neutral-500 uppercase tracking-wider text-[10px]">
                                     Hosted by
                                 </p>
-                                <p className="text-white">EventNoir × BlackAt</p>
+                                <p className="text-white">EventNoire × Naya Cannes</p>
                             </div>
                         </div>
 

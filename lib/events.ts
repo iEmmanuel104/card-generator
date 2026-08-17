@@ -2,6 +2,33 @@
 import { EventConfig, EventSlug } from './types';
 
 const events: Record<EventSlug, EventConfig> = {
+    // Ordered newest-first — getAllEvents() insertion order drives the hub page grid.
+    'masterclass-detroit': {
+        slug: 'masterclass-detroit',
+        name: 'Masterclass Detroit',
+        tagline: 'A masterclass with Spike Lee — craft, ownership and the long game',
+        date: 'September 9, 2026',
+        time: 'Time TBA',
+        venue: 'Detroit, MI',
+        theme: 'dark',
+        colors: {
+            primary: '#e11d2e',
+            secondary: '#1a1a1a',
+            accent: '#e11d2e',
+            background: '#000000',
+        },
+        cardTemplate: {
+            // Promo only — no social-card generation; kept for type compatibility.
+            path: 'https://blkat.b-cdn.net/events/masterclass-detroit-poster.jpg',
+            width: 1080,
+            height: 1485,
+        },
+        cardDateText: 'September 9',
+        cardVenueText: 'Detroit, MI.',
+        speakersEnabled: false,
+        partners: [],
+        mediaPartners: [],
+    },
     'this-is-lagos': {
         slug: 'this-is-lagos',
         name: 'This Is Lagos',
@@ -121,10 +148,10 @@ const events: Record<EventSlug, EventConfig> = {
     'cannes-after-dark': {
         slug: 'cannes-after-dark',
         name: 'Cannes After Dark',
-        tagline: 'An exclusive night in the heart of Cannes — DJ Obi & Moonchild Sanelly',
+        tagline: 'An exclusive night in the heart of Cannes — Obi House · Afro House · Amapiano · R&B',
         date: 'June 24, 2026',
-        time: 'Doors 10:00 PM',
-        venue: 'Cannes, France',
+        time: '11PM till Dawn (Doors 10PM)',
+        venue: 'Secret Location, Cannes, France',
         theme: 'dark',
         colors: {
             primary: '#d4af37',

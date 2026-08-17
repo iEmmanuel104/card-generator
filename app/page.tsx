@@ -69,6 +69,68 @@ export default function EventsHub() {
                         const isTHLLagos = event.slug === "through-her-lens";
                         const isTIL = event.slug === "this-is-lagos";
                         const isCannesAfterDark = event.slug === "cannes-after-dark";
+                        const isMasterclassDetroit = event.slug === "masterclass-detroit";
+
+                        if (isMasterclassDetroit) {
+                            // Masterclass Detroit — promo card; registration lives on BLKAT
+                            return (
+                                <motion.div
+                                    key={event.slug}
+                                    initial={{ opacity: 0, y: 30 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.2 + index * 0.15 }}
+                                >
+                                    <Link href="/masterclass-detroit">
+                                        <div className="group relative rounded-2xl border-2 border-[#333] p-8 transition-all duration-300 hover:shadow-xl hover:shadow-red-900/30 hover:-translate-y-1 hover:border-[#e11d2e]/60 cursor-pointer h-full flex flex-col overflow-hidden bg-black">
+                                            <div className="absolute inset-0 opacity-[0.22] group-hover:opacity-[0.35] transition-opacity duration-500">
+                                                <Image
+                                                    src="https://blkat.b-cdn.net/events/masterclass-detroit-poster.jpg"
+                                                    alt=""
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                                />
+                                            </div>
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-black/30" />
+                                            <div
+                                                className="absolute inset-0 pointer-events-none"
+                                                style={{
+                                                    background:
+                                                        "radial-gradient(ellipse 70% 40% at 50% 0%, rgba(225,29,46,0.18) 0%, transparent 70%)",
+                                                }}
+                                            />
+                                            <div className="relative z-10">
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#e11d2e]/40 bg-[#e11d2e]/10 mb-4">
+                                                    <span className="text-[10px] font-poppins font-medium uppercase tracking-wider text-[#e11d2e]">
+                                                        Masterclass &middot; Spike Lee
+                                                    </span>
+                                                </div>
+                                                <h2 className="text-2xl md:text-3xl font-dakdo font-bold mb-3 text-white">
+                                                    Masterclass <span className="text-[#e11d2e]">Detroit</span>
+                                                </h2>
+                                                <p className="text-sm md:text-base font-inter mb-6 leading-relaxed text-gray-400 flex-1">
+                                                    {event.tagline}
+                                                </p>
+                                                <div className="space-y-2 mb-6 text-sm font-inter text-gray-500">
+                                                    <p className="flex items-center gap-2">
+                                                        <Calendar className="w-3.5 h-3.5 text-[#e11d2e]" />
+                                                        {event.date}
+                                                    </p>
+                                                    <p className="flex items-center gap-2">
+                                                        <MapPin className="w-3.5 h-3.5 text-[#e11d2e]" />
+                                                        {event.venue}
+                                                    </p>
+                                                </div>
+                                                <div className="inline-flex items-center font-poppins font-semibold text-sm text-[#e11d2e] group-hover:text-[#f04456] transition-colors">
+                                                    Get tickets on BLKAT
+                                                    <span className="ml-2 transition-transform group-hover:translate-x-1">&rarr;</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </motion.div>
+                            );
+                        }
 
                         if (isCannesAfterDark) {
                             return (
@@ -82,7 +144,7 @@ export default function EventsHub() {
                                         <div className="group relative rounded-2xl border-2 border-[#333] p-8 transition-all duration-300 hover:shadow-xl hover:shadow-yellow-900/30 hover:-translate-y-1 hover:border-[#d4af37]/60 cursor-pointer h-full flex flex-col overflow-hidden bg-black">
                                             <div className="absolute inset-0 opacity-[0.22] group-hover:opacity-[0.35] transition-opacity duration-500">
                                                 <Image
-                                                    src="https://res.cloudinary.com/drc6omjqc/image/upload/v1778178165/blkat/events/cannes-after-dark-poster.jpg"
+                                                    src="https://res.cloudinary.com/drc6omjqc/image/upload/v1779395615/blkat/events/cannes-after-dark-poster.png"
                                                     alt=""
                                                     fill
                                                     className="object-cover"
@@ -100,7 +162,7 @@ export default function EventsHub() {
                                             <div className="relative z-10">
                                                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#d4af37]/40 bg-[#d4af37]/10 mb-4">
                                                     <span className="text-[10px] font-poppins font-medium uppercase tracking-wider text-[#d4af37]">
-                                                        Partner Event &middot; EventNoir
+                                                        Partner Event &middot; EventNoire
                                                     </span>
                                                 </div>
                                                 <h2 className="text-2xl md:text-3xl font-dakdo font-bold mb-3 text-white">
@@ -116,7 +178,7 @@ export default function EventsHub() {
                                                     </p>
                                                     <p className="flex items-center gap-2">
                                                         <MapPin className="w-3.5 h-3.5 text-[#d4af37]" />
-                                                        Cannes, France
+                                                        Secret Location &middot; Cannes
                                                     </p>
                                                 </div>
                                                 <div className="inline-flex items-center font-poppins font-semibold text-sm text-[#d4af37] group-hover:text-[#e8c252] transition-colors">
