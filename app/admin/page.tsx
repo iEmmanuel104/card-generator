@@ -94,6 +94,8 @@ interface FeedbackApiResponse {
 
 const EVENT_TABS = [
     { slug: "", label: "All Events" },
+    // Newest first — the live event should be one click away.
+    { slug: "executive-dinner-lagos", label: "Executive Dinner Lagos" },
     { slug: "through-her-lens", label: "THL Lagos" },
     { slug: "through-her-lens-joburg", label: "THL Johannesburg" },
     { slug: "the-dare-awards", label: "The Dare Awards" },
