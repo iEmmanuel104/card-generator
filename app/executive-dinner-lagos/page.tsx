@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, type FormEvent } from "react";
-import { CalendarDays, Check, Clock, Loader2, MapPin, Shirt } from "lucide-react";
+import { CalendarDays, Check, Clock, Loader2, Lock, MapPin, Shirt } from "lucide-react";
 import { getEventConfig } from "@/lib/events";
 
 const EVENT_SLUG = "executive-dinner-lagos" as const;
@@ -12,9 +12,58 @@ const POSTER_URL = config.cardTemplate.path;
 const DETAILS = [
     { icon: CalendarDays, label: "Date", value: "Saturday, August 22, 2026" },
     { icon: Clock, label: "Time", value: "6:00 PM prompt" },
-    { icon: MapPin, label: "Venue", value: "Knowhere Lagos — 17 Adeola Odeku Street, Lagos, Nigeria" },
     { icon: Shirt, label: "Dress code", value: "African Elegant Attire" },
 ];
+
+/** Widths of the decorative "redacted" bars, in place of the address.
+ *  Deliberately irregular so it reads as concealed text rather than a skeleton
+ *  loader. The real address is NEVER rendered — CSS blur is a look, not a lock,
+ *  and anything in the DOM is one "view source" away. */
+const SEAL_BARS = ["78%", "54%", "66%"];
+
+/** The venue is withheld on purpose and sent to confirmed guests by email —
+ *  matching the invitation art, which reads "VENUE: SECRET LOCATION TO BE
+ *  REVEALED". The animation exists to signal intent: sealed, not still loading. */
+function SealedVenue() {
+    return (
+        <div className="flex items-start gap-3">
+            <span
+                className="seal-lock mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d4af37]/15"
+                aria-hidden
+            >
+                <Lock className="h-3 w-3 text-[#d4af37]" />
+            </span>
+            <div className="min-w-0 flex-1">
+                <p className="text-xs uppercase tracking-wider text-white/40">Venue</p>
+
+                <div className="relative mt-1.5 overflow-hidden rounded-lg border border-[#d4af37]/25 bg-gradient-to-br from-[#d4af37]/[0.07] to-transparent px-3 py-2.5">
+                    {/* Redacted bars — decorative only, hidden from assistive tech. */}
+                    <div className="seal-breathe space-y-1.5" aria-hidden>
+                        {SEAL_BARS.map((width) => (
+                            <span
+                                key={width}
+                                style={{ width }}
+                                className="block h-2.5 rounded-full bg-gradient-to-r from-white/55 via-white/35 to-white/15"
+                            />
+                        ))}
+                    </div>
+
+                    {/* Gold shimmer sweep across the seal. */}
+                    <span
+                        className="seal-shimmer pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-[#d4af37]/25 to-transparent"
+                        aria-hidden
+                    />
+                </div>
+
+                {/* The only text a screen reader (or a curious reader) gets. */}
+                <p className="mt-2 flex items-center gap-1.5 text-xs text-[#d4af37]">
+                    <MapPin className="h-3 w-3 shrink-0" aria-hidden />
+                    Secret location — sent to you by email once your attendance is confirmed
+                </p>
+            </div>
+        </div>
+    );
+}
 
 export default function ExecutiveDinnerLagosPage() {
     const [form, setForm] = useState({ name: "", email: "", phoneNumber: "", organization: "" });
@@ -58,7 +107,7 @@ export default function ExecutiveDinnerLagosPage() {
                     <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-[#e11d2e]/30 shadow-[0_0_60px_-15px_rgba(225,29,46,0.4)]">
                         <Image
                             src={POSTER_URL}
-                            alt="The Executive Dinner Lagos — Saturday August 22 2026, 6:00 PM, Knowhere Lagos"
+                            alt="The Executive Dinner Lagos — strictly by invitation. Saturday 22 August 2026, 6:00 PM. Venue kept private."
                             fill
                             priority
                             className="object-cover"
@@ -85,6 +134,7 @@ export default function ExecutiveDinnerLagosPage() {
                                     </div>
                                 </div>
                             ))}
+                            <SealedVenue />
                         </div>
 
                         <div className="mt-8 space-y-4 text-sm leading-relaxed text-white/70">

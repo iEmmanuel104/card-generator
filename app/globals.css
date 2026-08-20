@@ -215,3 +215,37 @@ body {
   0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
   50% { box-shadow: 0 0 0 8px rgba(220,38,38,0); }
 }
+
+/* ── Sealed venue (Executive Dinner) ──────────────────────────────
+   The address is deliberately withheld and sent by email, so the card
+   must read as *intentionally* sealed rather than broken or still loading.
+   The real address is never in the DOM — these bars are decorative. */
+
+/* Gold shimmer sweeping across the redacted bars */
+@keyframes seal-shimmer {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(220%); }
+}
+
+/* Slow breathing on the blurred bars so it reads as alive, not stuck */
+@keyframes seal-breathe {
+  0%, 100% { opacity: 0.5; filter: blur(6px); }
+  50%      { opacity: 0.75; filter: blur(7px); }
+}
+
+/* Soft halo around the lock */
+@keyframes seal-lock-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.35); }
+  50%      { box-shadow: 0 0 0 7px rgba(212,175,55,0); }
+}
+
+.seal-shimmer  { animation: seal-shimmer 2.8s ease-in-out infinite; }
+.seal-breathe  { animation: seal-breathe 4s ease-in-out infinite; }
+.seal-lock     { animation: seal-lock-pulse 2.8s ease-in-out infinite; }
+
+/* Respect users who ask for reduced motion — the sealed look still reads
+   correctly without any movement. */
+@media (prefers-reduced-motion: reduce) {
+  .seal-shimmer, .seal-breathe, .seal-lock { animation: none; }
+  .seal-breathe { opacity: 0.6; filter: blur(6px); }
+}

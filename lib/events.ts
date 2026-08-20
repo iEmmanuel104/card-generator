@@ -9,7 +9,7 @@ const events: Record<EventSlug, EventConfig> = {
         tagline: 'An invitation-only evening for Africa\u2019s leading brand executives',
         date: 'August 22, 2026',
         time: '6:00 PM prompt',
-        venue: 'Knowhere Lagos \u2014 17 Adeola Odeku Street, Lagos',
+        venue: 'Secret location \u2014 revealed to confirmed guests',
         theme: 'dark',
         colors: {
             primary: '#e11d2e',
@@ -24,7 +24,7 @@ const events: Record<EventSlug, EventConfig> = {
             height: 1350,
         },
         cardDateText: 'August 22',
-        cardVenueText: 'Knowhere Lagos.',
+        cardVenueText: 'Lagos.',
         speakersEnabled: false,
         partners: [],
         mediaPartners: [],
