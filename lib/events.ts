@@ -3,6 +3,32 @@ import { EventConfig, EventSlug } from './types';
 
 const events: Record<EventSlug, EventConfig> = {
     // Ordered newest-first — getAllEvents() insertion order drives the hub page grid.
+    'executive-dinner-lagos': {
+        slug: 'executive-dinner-lagos',
+        name: 'The Executive Dinner / Lagos',
+        tagline: 'An invitation-only evening for Africa\u2019s leading brand executives',
+        date: 'August 22, 2026',
+        time: '6:00 PM prompt',
+        venue: 'Knowhere Lagos \u2014 17 Adeola Odeku Street, Lagos',
+        theme: 'dark',
+        colors: {
+            primary: '#e11d2e',
+            secondary: '#7f1d1d',
+            accent: '#d4af37',
+            background: '#000000',
+        },
+        cardTemplate: {
+            // Promo + RSVP only — no social-card generation for this event.
+            path: 'https://res.cloudinary.com/drc6omjqc/image/upload/v1787205902/blkat/posts/2e5b79a7-22b4-436a-81ea-5562af4c3d91/OFFICIAL_INVITATION_FOR_EXECUTIVE_DINNER_LAGOS_afe464e06b78.png',
+            width: 1080,
+            height: 1350,
+        },
+        cardDateText: 'August 22',
+        cardVenueText: 'Knowhere Lagos.',
+        speakersEnabled: false,
+        partners: [],
+        mediaPartners: [],
+    },
     'masterclass-detroit': {
         slug: 'masterclass-detroit',
         name: 'Masterclass Detroit',

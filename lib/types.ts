@@ -8,7 +8,8 @@ export type EventSlug =
     | 'through-her-lens-joburg'
     | 'the-dare-awards'
     | 'cannes-after-dark'
-    | 'masterclass-detroit';
+    | 'masterclass-detroit'
+    | 'executive-dinner-lagos';
 export type RegistrationRole = 'attendee' | 'speaker';
 
 export interface EventPartner {
