@@ -3,6 +3,34 @@ import { EventConfig, EventSlug } from './types';
 
 const events: Record<EventSlug, EventConfig> = {
     // Ordered newest-first — getAllEvents() insertion order drives the hub page grid.
+    'bal-lagos': {
+        slug: 'bal-lagos',
+        name: 'BAL Lagos',
+        tagline: 'An exclusive Basketball Africa League evening in Lagos \u2014 alongside CANEX',
+        date: 'Thursday, November 5, 2026',
+        time: '6:00 PM prompt',
+        venue: 'Knowhere Restaurant, 17 Adeola Odeku Street, Victoria Island, Lagos',
+        theme: 'dark',
+        colors: {
+            primary: '#e11d2e',
+            secondary: '#7f1d1d',
+            accent: '#d4af37',
+            background: '#000000',
+        },
+        cardTemplate: {
+            // Promo + RSVP only — no social-card generation; kept for type compatibility.
+            path: '/images/logo.png',
+            width: 1080,
+            height: 1350,
+        },
+        cardDateText: 'November 5',
+        cardVenueText: 'Lagos.',
+        speakersEnabled: false,
+        // Private, link-only invitation — never shown on the events hub.
+        unlisted: true,
+        partners: [],
+        mediaPartners: [],
+    },
     'executive-dinner-lagos': {
         slug: 'executive-dinner-lagos',
         name: 'The Executive Dinner / Lagos',
@@ -209,4 +237,9 @@ export function getEventConfig(slug: EventSlug): EventConfig {
 
 export function getAllEvents(): EventConfig[] {
     return Object.values(events);
+}
+
+/** Hub-visible events only — invite-only (`unlisted`) events are reachable by direct link, never listed. */
+export function getListedEvents(): EventConfig[] {
+    return Object.values(events).filter((e) => !e.unlisted);
 }

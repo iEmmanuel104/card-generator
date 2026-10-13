@@ -4,11 +4,11 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { getAllEvents } from "@/lib/events";
+import { getListedEvents } from "@/lib/events";
 import { Calendar, MapPin, ArrowRight } from "lucide-react";
 
 export default function EventsHub() {
-    const events = getAllEvents();
+    const events = getListedEvents();
 
     return (
         <div className="min-h-screen bg-white">

@@ -29,8 +29,22 @@ export function getRegistrationEmailHtml(params: RegistrationEmailParams): strin
         ? `<span style="display: inline-block; background-color: ${accent}; color: #ffffff; font-size: 12px; font-weight: 700; padding: 6px 24px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 1px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">SPEAKER</span>`
         : `<span style="display: inline-block; background-color: transparent; color: ${accent}; font-size: 12px; font-weight: 700; padding: 4px 22px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 1px; border: 2px solid ${accent}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">ATTENDEE</span>`;
 
-    // Event-specific header treatment
-    const headerTitle = isDareAwards
+    // Event-specific header treatment. THL and Dare Awards have bespoke art;
+    // every other event gets a neutral header built from its own name so guests
+    // never receive another event's branding.
+    const isThl = eventSlug === 'through-her-lens' || eventSlug === 'through-her-lens-joburg';
+    const genericHeader = `
+                                <tr>
+                                    <td align="center" style="padding-bottom: 6px;">
+                                        <p style="margin: 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 3px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">You're invited</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-bottom: 22px;">
+                                        <p style="margin: 0; font-size: 30px; font-weight: 700; color: ${accent}; font-family: Georgia, 'Times New Roman', serif; letter-spacing: 1px;">${eventName}</p>
+                                    </td>
+                                </tr>`;
+    const headerTitle = !isDareAwards && !isThl ? genericHeader : isDareAwards
         ? `
                                 <tr>
                                     <td align="center" style="padding-bottom: 6px;">

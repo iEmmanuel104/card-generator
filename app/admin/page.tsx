@@ -95,6 +95,7 @@ interface FeedbackApiResponse {
 const EVENT_TABS = [
     { slug: "", label: "All Events" },
     // Newest first — the live event should be one click away.
+    { slug: "bal-lagos", label: "BAL Lagos" },
     { slug: "executive-dinner-lagos", label: "Executive Dinner Lagos" },
     { slug: "through-her-lens", label: "THL Lagos" },
     { slug: "through-her-lens-joburg", label: "THL Johannesburg" },
@@ -327,6 +328,8 @@ export default function AdminPage() {
             case "through-her-lens-joburg": return "THL Johannesburg";
             case "the-dare-awards": return "The Dare Awards";
             case "cannes-after-dark": return "Cannes After Dark";
+            case "executive-dinner-lagos": return "Executive Dinner Lagos";
+            case "bal-lagos": return "BAL Lagos";
             default: return slug;
         }
     };

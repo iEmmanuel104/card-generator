@@ -9,7 +9,8 @@ export type EventSlug =
     | 'the-dare-awards'
     | 'cannes-after-dark'
     | 'masterclass-detroit'
-    | 'executive-dinner-lagos';
+    | 'executive-dinner-lagos'
+    | 'bal-lagos';
 export type RegistrationRole = 'attendee' | 'speaker';
 
 export interface EventPartner {
@@ -40,6 +41,8 @@ export interface EventConfig {
     cardDateText?: string;
     cardVenueText?: string;
     speakersEnabled: boolean;
+    /** Invite-only events shared by direct link. Hidden from getListedEvents() (hub grid). */
+    unlisted?: boolean;
     partners: EventPartner[];
     mediaPartners: EventPartner[];
 }
