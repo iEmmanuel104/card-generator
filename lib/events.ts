@@ -8,7 +8,7 @@ const events: Record<EventSlug, EventConfig> = {
         name: 'BAL Lagos',
         tagline: 'An exclusive Basketball Africa League evening in Lagos \u2014 alongside CANEX',
         date: 'Thursday, November 5, 2026',
-        time: '6:00 PM prompt',
+        time: '7:00 PM prompt',
         venue: 'Knowhere Restaurant, 17 Adeola Odeku Street, Victoria Island, Lagos',
         theme: 'dark',
         colors: {
@@ -18,10 +18,10 @@ const events: Record<EventSlug, EventConfig> = {
             background: '#000000',
         },
         cardTemplate: {
-            // Promo + RSVP only — no social-card generation; kept for type compatibility.
-            path: '/images/logo.png',
-            width: 1080,
-            height: 1350,
+            // Promo + RSVP only — no social-card generation; this is the invitation flyer.
+            path: '/images/bal-lagos-flyer.png',
+            width: 820,
+            height: 1024,
         },
         cardDateText: 'November 5',
         cardVenueText: 'Lagos.',

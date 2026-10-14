@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
     title: "BAL Lagos · Private Invitation",
     description:
-        "An exclusive Basketball Africa League evening in Lagos. Thursday, November 5, 2026 · 6:00 PM. RSVP required.",
+        "An exclusive Basketball Africa League evening in Lagos. Thursday, November 5, 2026 · 7:00 PM. RSVP required.",
     robots: { index: false, follow: false, nocache: true },
 };
 
