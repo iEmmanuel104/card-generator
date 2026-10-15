@@ -36,6 +36,7 @@ export default function BalLagosPage() {
     email: "",
     phoneNumber: "",
     organization: "",
+    position: "",
   });
   const [status, setStatus] = useState<"idle" | "submitting" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -211,6 +212,13 @@ export default function BalLagosPage() {
                       onChange={set("organization")}
                       placeholder="Company / organisation"
                       autoComplete="organization"
+                      className={INPUT}
+                    />
+                    <input
+                      value={form.position}
+                      onChange={set("position")}
+                      placeholder="Position / job title"
+                      autoComplete="organization-title"
                       className={INPUT}
                     />
 

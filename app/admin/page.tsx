@@ -14,6 +14,7 @@ interface Registration {
     email: string;
     phoneNumber: string;
     organization?: string;
+    position?: string;
     profilePhoto: string;
     socialCard: string;
     emailSent: boolean;
@@ -522,6 +523,9 @@ export default function AdminPage() {
                                                     Organization
                                                 </th>
                                                 <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
+                                                    Position
+                                                </th>
+                                                <th className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">
                                                     Role
                                                 </th>
                                                 {!activeEvent && (
@@ -559,6 +563,9 @@ export default function AdminPage() {
                                                     </td>
                                                     <td className="px-4 py-3 text-sm text-gray-400">
                                                         {registration.organization || "\u2014"}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-400">
+                                                        {registration.position || "\u2014"}
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <span
@@ -1043,6 +1050,10 @@ export default function AdminPage() {
                                     <div>
                                         <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Organization</p>
                                         <p className="text-sm text-gray-900 font-inter">{selectedRegistration.organization || "—"}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Position</p>
+                                        <p className="text-sm text-gray-900 font-inter">{selectedRegistration.position || "—"}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs uppercase tracking-wider text-gray-400 font-inter mb-1">Registered</p>
