@@ -8,7 +8,10 @@ const validEventSlugs = new Set<string>(getAllEvents().map((e) => e.slug));
 
 function escapeCsvValue(value: string | undefined | null): string {
     if (value === undefined || value === null) return '';
-    const str = String(value);
+    let str = String(value);
+    // Neutralise spreadsheet formula injection: a value starting with = + - @ (or
+    // tab/CR) would be evaluated by Excel/Sheets when the export is opened.
+    if (/^[=+\-@\t\r]/.test(str)) str = `'${str}`;
     if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
         return `"${str.replace(/"/g, '""')}"`;
     }
