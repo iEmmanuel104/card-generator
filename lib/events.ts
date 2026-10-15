@@ -5,7 +5,7 @@ const events: Record<EventSlug, EventConfig> = {
     // Ordered newest-first — getAllEvents() insertion order drives the hub page grid.
     'bal-lagos': {
         slug: 'bal-lagos',
-        name: 'BAL Lagos',
+        name: 'BAL Networking Cocktail \u2014 Lagos',
         tagline: 'An exclusive Basketball Africa League evening in Lagos \u2014 alongside CANEX',
         date: 'Thursday, November 5, 2026',
         time: '7:00 PM prompt',
@@ -19,9 +19,9 @@ const events: Record<EventSlug, EventConfig> = {
         },
         cardTemplate: {
             // Promo + RSVP only — no social-card generation; this is the invitation flyer.
-            path: '/images/bal-lagos-flyer.png',
-            width: 820,
-            height: 1024,
+            path: '/images/bal-lagos-flyer.jpg',
+            width: 1108,
+            height: 1420,
         },
         cardDateText: 'November 5',
         cardVenueText: 'Lagos.',

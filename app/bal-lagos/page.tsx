@@ -87,7 +87,7 @@ export default function BalLagosPage() {
           >
             <Image
               src={FLYER.path}
-              alt="Executive Dinner with RwandAir, BAL and Visit Rwanda. Thursday 5 November 2026, 7:00 PM, Knowhere Restaurant, V.I. Lagos."
+              alt="Save the date: Networking Cocktail with RwandAir, BAL and Visit Rwanda. Thursday 5 November 2026, 7:00 PM, Knowhere Restaurant, 17 Adeola Odeku Street, Victoria Island, Lagos."
               fill
               priority
               className="object-cover"
@@ -98,10 +98,10 @@ export default function BalLagosPage() {
           <div>
             {/* Hero */}
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d4af37]">
-              You are cordially invited &middot; Lagos
+              Save the date &middot; Lagos
             </p>
             <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">
-              Executive Dinner <span className="text-[#e11d2e]">with BAL</span>
+              Networking <span className="text-[#e11d2e]">Cocktail</span>
             </h1>
             <p className="mt-4 text-lg text-white/70">
               An exclusive evening celebrating the intersection of basketball,
