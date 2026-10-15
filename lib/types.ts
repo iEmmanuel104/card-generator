@@ -43,6 +43,8 @@ export interface EventConfig {
     speakersEnabled: boolean;
     /** Invite-only events shared by direct link. Hidden from getListedEvents() (hub grid). */
     unlisted?: boolean;
+    /** Require company + position on attendee RSVPs (enforced in /api/register). */
+    requireOrganization?: boolean;
     partners: EventPartner[];
     mediaPartners: EventPartner[];
 }

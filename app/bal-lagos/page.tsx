@@ -208,16 +208,18 @@ export default function BalLagosPage() {
                       className={INPUT}
                     />
                     <input
+                      required
                       value={form.organization}
                       onChange={set("organization")}
-                      placeholder="Company / organisation"
+                      placeholder="Company / organisation *"
                       autoComplete="organization"
                       className={INPUT}
                     />
                     <input
+                      required
                       value={form.position}
                       onChange={set("position")}
-                      placeholder="Position / job title"
+                      placeholder="Position / job title *"
                       autoComplete="organization-title"
                       className={INPUT}
                     />

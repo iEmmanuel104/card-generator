@@ -73,6 +73,18 @@ export async function POST(request: Request) {
             }
         }
 
+        // Some invite-only events need to know who the guest is professionally.
+        if (eventConfig.requireOrganization) {
+            const hasOrg = typeof organization === 'string' && organization.trim().length > 0;
+            const hasPos = typeof position === 'string' && position.trim().length > 0;
+            if (!hasOrg || !hasPos) {
+                return NextResponse.json(
+                    { success: false, message: 'Please provide your company / organisation and your position.' },
+                    { status: 400 }
+                );
+            }
+        }
+
         // Check for duplicate registration
         const existing = await db.collection('registrations').findOne({ event, email });
         if (existing) {

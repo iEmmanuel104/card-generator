@@ -28,6 +28,7 @@ const events: Record<EventSlug, EventConfig> = {
         speakersEnabled: false,
         // Private, link-only invitation — never shown on the events hub.
         unlisted: true,
+        requireOrganization: true,
         partners: [],
         mediaPartners: [],
     },
