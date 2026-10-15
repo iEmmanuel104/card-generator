@@ -56,6 +56,8 @@ export interface BaseRegistration {
     email: string;
     phoneNumber?: string;
     organization?: string;
+    /** Job title / role within the organisation (e.g. 'Head of Marketing'). */
+    position?: string;
     profilePhoto: string;
     socialCard: string;
     emailSent: boolean;

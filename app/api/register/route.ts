@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         const db = client.db("eventRegistrations");
 
         const body = await request.json();
-        const { event, role, name, email, phoneNumber, profilePhoto, socialCard, organization, talkTitle, bio } = body;
+        const { event, role, name, email, phoneNumber, profilePhoto, socialCard, organization, position, talkTitle, bio } = body;
 
         // Validate event
         let eventConfig;
@@ -92,6 +92,7 @@ export async function POST(request: Request) {
             profilePhoto,
             socialCard,
             organization: organization || undefined,
+            position: typeof position === 'string' && position.trim() ? position.trim() : undefined,
             emailSent: false,
             createdAt: new Date(),
             ...(role === 'speaker' ? { talkTitle, bio } : {}),
